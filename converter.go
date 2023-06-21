@@ -2,7 +2,7 @@ package rosetta
 
 import (
 	"bytes"
-	"encoding/base64"
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -15,8 +15,9 @@ import (
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
 	sdkmath "cosmossdk.io/math"
-	crgerrs "rosetta/lib/errors"
-	crgtypes "rosetta/lib/types"
+
+	crgerrs "cosmossdk.io/tools/rosetta/lib/errors"
+	crgtypes "cosmossdk.io/tools/rosetta/lib/types"
 
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -27,12 +28,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // Converter is a utility that can be used to convert
-// back and forth from rosetta to sdk and CometBFT types
+// back and forth from rosetta to sdk and CometBFT types.
 // IMPORTANT NOTES:
 //   - IT SHOULD BE USED ONLY TO DEAL WITH THINGS
 //     IN A STATELESS WAY! IT SHOULD NEVER INTERACT DIRECTLY
@@ -71,7 +70,7 @@ type ToRosettaConverter interface {
 	// SigningComponents returns rosetta's components required to build a signable transaction
 	SigningComponents(tx authsigning.Tx, metadata *ConstructionMetadata, rosPubKeys []*rosettatypes.PublicKey) (txBytes []byte, payloadsToSign []*rosettatypes.SigningPayload, err error)
 	// Tx converts a CometBFT transaction and tx result if provided to a rosetta tx
-	Tx(rawTx cmttypes.Tx, txResult *abci.ResponseDeliverTx) (*rosettatypes.Transaction, error)
+	Tx(rawTx cmttypes.Tx, txResult *abci.ExecTxResult) (*rosettatypes.Transaction, error)
 	// TxIdentifiers converts a CometBFT tx to transaction identifiers
 	TxIdentifiers(txs []cmttypes.Tx) []*rosettatypes.TransactionIdentifier
 	// BalanceOps converts events to balance operations
@@ -117,7 +116,9 @@ func NewConverter(cdc *codec.ProtoCodec, ir codectypes.InterfaceRegistry, cfg sd
 		txDecode:        cfg.TxDecoder(),
 		txEncode:        cfg.TxEncoder(),
 		bytesToSign: func(tx authsigning.Tx, signerData authsigning.SignerData) (b []byte, err error) {
-			bytesToSign, err := cfg.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON, signerData, tx)
+			bytesToSign, err := authsigning.GetSignBytesAdapter(
+				context.Background(), cfg.SignModeHandler(),
+				signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON, signerData, tx)
 			if err != nil {
 				return nil, err
 			}
@@ -146,14 +147,9 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 	for i := 0; i < len(ops); i++ {
 		op := ops[i]
 
-		protoMessage, err := c.ir.Resolve(op.Type)
+		msg, err := c.ir.Resolve(op.Type)
 		if err != nil {
 			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, "operation not found: "+op.Type)
-		}
-
-		msg, ok := protoMessage.(sdk.Msg)
-		if !ok {
-			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, "operation is not a valid supported sdk.Msg: "+op.Type)
 		}
 
 		err = c.Msg(op.Metadata, msg)
@@ -162,14 +158,20 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 		}
 
 		// verify message correctness
-		if err = msg.ValidateBasic(); err != nil {
-			return nil, crgerrs.WrapError(
-				crgerrs.ErrBadArgument,
-				fmt.Sprintf("validation of operation at index %d failed: %s", op.OperationIdentifier.Index, err),
-			)
+		if m, ok := msg.(sdk.HasValidateBasic); ok {
+			if err = m.ValidateBasic(); err != nil {
+				return nil, crgerrs.WrapError(
+					crgerrs.ErrBadArgument,
+					fmt.Sprintf("validation of operation at index %d failed: %s", op.OperationIdentifier.Index, err),
+				)
+			}
 		}
 
-		signers := msg.GetSigners()
+		signers, _, err := c.cdc.GetMsgV1Signers(msg)
+		if err != nil {
+			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, err.Error())
+		}
+
 		// check if there are enough signers
 		if len(signers) == 0 {
 			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, fmt.Sprintf("operation at index %d got no signers", op.OperationIdentifier.Index))
@@ -247,12 +249,22 @@ func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, e
 		return nil, err
 	}
 
-	ops := make([]*rosettatypes.Operation, len(msg.GetSigners()))
-	for i, signer := range msg.GetSigners() {
+	signers, _, err := c.cdc.GetMsgV1Signers(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	ops := make([]*rosettatypes.Operation, len(signers))
+	for i, signer := range signers {
+		signerStr, err := c.ir.SigningContext().AddressCodec().BytesToString(signer)
+		if err != nil {
+			return nil, err
+		}
+
 		op := &rosettatypes.Operation{
 			Type:     opName,
 			Status:   &status,
-			Account:  &rosettatypes.AccountIdentifier{Address: signer.String()},
+			Account:  &rosettatypes.AccountIdentifier{Address: signerStr},
 			Metadata: meta,
 		}
 
@@ -263,7 +275,7 @@ func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, e
 }
 
 // Tx converts a CometBFT raw transaction and its result (if provided) to a rosetta transaction
-func (c converter) Tx(rawTx cmttypes.Tx, txResult *abci.ResponseDeliverTx) (*rosettatypes.Transaction, error) {
+func (c converter) Tx(rawTx cmttypes.Tx, txResult *abci.ExecTxResult) (*rosettatypes.Transaction, error) {
 	// decode tx
 	tx, err := c.txDecode(rawTx)
 	if err != nil {
@@ -342,16 +354,8 @@ func sdkEventToBalanceOperations(status string, event abci.Event) (operations []
 	default:
 		return nil, false
 	case banktypes.EventTypeCoinSpent:
-		addr, err := base64.StdEncoding.DecodeString(event.Attributes[0].Value)
-		if err != nil {
-			panic(err)
-		}
-		spender := sdk.MustAccAddressFromBech32(string(addr))
-		coin, err := base64.StdEncoding.DecodeString(event.Attributes[1].Value)
-		if err != nil {
-			panic(err)
-		}
-		coins, err := sdk.ParseCoinsNormalized(string(coin))
+		spender := sdk.MustAccAddressFromBech32(event.Attributes[0].Value)
+		coins, err := sdk.ParseCoinsNormalized(event.Attributes[1].Value)
 		if err != nil {
 			panic(err)
 		}
@@ -361,16 +365,8 @@ func sdkEventToBalanceOperations(status string, event abci.Event) (operations []
 		accountIdentifier = spender.String()
 
 	case banktypes.EventTypeCoinReceived:
-		addr, err := base64.StdEncoding.DecodeString(event.Attributes[0].Value)
-		if err != nil {
-			panic(err)
-		}
-		receiver := sdk.MustAccAddressFromBech32(string(addr))
-		coin, err := base64.StdEncoding.DecodeString(event.Attributes[1].Value)
-		if err != nil {
-			panic(err)
-		}
-		coins, err := sdk.ParseCoinsNormalized(string(coin))
+		receiver := sdk.MustAccAddressFromBech32(event.Attributes[0].Value)
+		coins, err := sdk.ParseCoinsNormalized(event.Attributes[1].Value)
 		if err != nil {
 			panic(err)
 		}
@@ -382,11 +378,7 @@ func sdkEventToBalanceOperations(status string, event abci.Event) (operations []
 	// rosetta does not have the concept of burning coins, so we need to mock
 	// the burn as a send to an address that cannot be resolved to anything
 	case banktypes.EventTypeCoinBurn:
-		coin, err := base64.StdEncoding.DecodeString(event.Attributes[1].Value)
-		if err != nil {
-			panic(err)
-		}
-		coins, err := sdk.ParseCoinsNormalized(string(coin))
+		coins, err := sdk.ParseCoinsNormalized(event.Attributes[1].Value)
 		if err != nil {
 			panic(err)
 		}
@@ -612,13 +604,24 @@ func (c converter) OpsAndSigners(txBytes []byte) (ops []*rosettatypes.Operation,
 		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 	}
 
-	for _, signer := range txBuilder.GetTx().GetSigners() {
+	signerAddrs, err := txBuilder.GetTx().GetSigners()
+	if err != nil {
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrBadArgument, err.Error())
+	}
+
+	for _, signer := range signerAddrs {
+		var signerStr string
+		signerStr, err = c.ir.SigningContext().AddressCodec().BytesToString(signer)
+		if err != nil {
+			return
+		}
+
 		signers = append(signers, &rosettatypes.AccountIdentifier{
-			Address: signer.String(),
+			Address: signerStr,
 		})
 	}
 
-	return
+	return ops, signers, nil
 }
 
 func (c converter) SignedTx(txBytes []byte, signatures []*rosettatypes.Signature) (signedTxBytes []byte, err error) {
@@ -694,7 +697,11 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 		return nil, nil, crgerrs.WrapError(crgerrs.ErrBadArgument, err.Error())
 	}
 
-	signers := tx.GetSigners()
+	signers, err := tx.GetSigners()
+	if err != nil {
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrBadArgument, err.Error())
+	}
+
 	// assert the signers data provided in options are the same as the expected signing accounts
 	// and that the number of rosetta provided public keys equals the one of the signers
 	if len(metadata.SignersData) != len(signers) || len(signers) != len(rosPubKeys) {
@@ -722,16 +729,21 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 		if err != nil {
 			return nil, nil, err
 		}
-		if !bytes.Equal(pubKey.Address().Bytes(), signer.Bytes()) {
+		if !bytes.Equal(pubKey.Address().Bytes(), signer) {
 			return nil, nil, crgerrs.WrapError(
 				crgerrs.ErrBadArgument,
-				fmt.Sprintf("public key at index %d does not match the expected transaction signer: %X <-> %X", i, rosPubKeys[i].Bytes, signer.Bytes()),
+				fmt.Sprintf("public key at index %d does not match the expected transaction signer: %X <-> %X", i, rosPubKeys[i].Bytes, signer),
 			)
+		}
+
+		signerStr, err := c.ir.SigningContext().AddressCodec().BytesToString(signer)
+		if err != nil {
+			return nil, nil, crgerrs.WrapError(crgerrs.ErrBadArgument, err.Error())
 		}
 
 		// set the signer data
 		signerData := authsigning.SignerData{
-			Address:       signer.String(),
+			Address:       signerStr,
 			ChainID:       metadata.ChainID,
 			AccountNumber: metadata.SignersData[i].AccountNumber,
 			Sequence:      metadata.SignersData[i].Sequence,
@@ -746,7 +758,7 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 
 		// set payload
 		payloadsToSign[i] = &rosettatypes.SigningPayload{
-			AccountIdentifier: &rosettatypes.AccountIdentifier{Address: signer.String()},
+			AccountIdentifier: &rosettatypes.AccountIdentifier{Address: signerStr},
 			Bytes:             signBytes,
 			SignatureType:     rosettatypes.Ecdsa,
 		}
@@ -779,7 +791,7 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 
 // SignerData converts the given any account to signer data
 func (c converter) SignerData(anyAccount *codectypes.Any) (*SignerData, error) {
-	var acc auth.AccountI
+	var acc sdk.AccountI
 	err := c.ir.UnpackAny(anyAccount, &acc)
 	if err != nil {
 		return nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())

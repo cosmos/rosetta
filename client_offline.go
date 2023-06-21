@@ -6,7 +6,7 @@ import (
 
 	"github.com/coinbase/rosetta-sdk-go/types"
 
-	crgerrs "rosetta/lib/errors"
+	crgerrs "cosmossdk.io/tools/rosetta/lib/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -79,12 +79,20 @@ func (c *Client) PreprocessOperationsToOptions(_ context.Context, req *types.Con
 	}
 
 	// get the signers
-	signers := tx.GetSigners()
+	signers, err := tx.GetSigners()
+	if err != nil {
+		return nil, err
+	}
+
 	signersStr := make([]string, len(signers))
 	accountIdentifiers := make([]*types.AccountIdentifier, len(signers))
 
 	for i, sig := range signers {
-		addr := sig.String()
+		addr, err := c.config.InterfaceRegistry.SigningContext().AddressCodec().BytesToString(sig)
+		if err != nil {
+			return nil, err
+		}
+
 		signersStr[i] = addr
 		accountIdentifiers[i] = &types.AccountIdentifier{
 			Address: addr,
