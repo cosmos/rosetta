@@ -14,35 +14,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  split-test-files:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: "1.20"
-          check-latest: true
-      - name: Create a file with all core Cosmos SDK pkgs
-        run: go list ./... > pkgs.txt
-      - name: Split pkgs into 4 files
-        run: split -d -n l/4 pkgs.txt pkgs.txt.part.
-      - uses: actions/upload-artifact@v3
-        with:
-          name: "${{ github.sha }}-00"
-          path: ./pkgs.txt.part.00
-      - uses: actions/upload-artifact@v3
-        with:
-          name: "${{ github.sha }}-01"
-          path: ./pkgs.txt.part.01
-      - uses: actions/upload-artifact@v3
-        with:
-          name: "${{ github.sha }}-02"
-          path: ./pkgs.txt.part.02
-      - uses: actions/upload-artifact@v3
-        with:
-          name: "${{ github.sha }}-03"
-          path: ./pkgs.txt.part.03
-
   test-rosetta:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -66,13 +37,5 @@ jobs:
       - name: tests
         if: env.GIT_DIFF
         run: |
-          make test-rosetta
+          make test
           go test -mod=readonly -timeout 30m -coverprofile=coverage.out -covermode=atomic -tags='norace ledger test_ledger_mock rocksdb_build' ./...
-      - name: sonarcloud
-        if: ${{ env.GIT_DIFF && !github.event.pull_request.draft && env.SONAR_TOKEN != null }}
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: /
