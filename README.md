@@ -1,7 +1,3 @@
----
-sidebar_position: 1
----
-
 # Rosetta
 
 The `rosetta` package implements Coinbase's [Rosetta API](https://www.rosetta-api.org). This document provides instructions on how to use the Rosetta API integration. For information about the motivation and design choices, refer to [ADR 035](https://docs.cosmos.network/main/architecture/adr-035-rosetta-api-support).
