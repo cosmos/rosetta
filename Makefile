@@ -6,7 +6,8 @@ rosetta:
 	go build -mod=readonly ./cmd/rosetta
 
 build:
-	go build ./cmd/rosetta.go
+	cd plugins/default && make plugin
+	go build -mod=readonly ./cmd/rosetta
 
 test:
 	go test -mod=readonly -race ./...

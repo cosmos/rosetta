@@ -32,7 +32,6 @@ import (
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	tmrpc "github.com/cometbft/cometbft/rpc/client"
-
 	"github.com/cosmos/cosmos-sdk/types/query"
 )
 
@@ -72,12 +71,14 @@ func NewClient(cfg *Config) (*Client, error) {
 
 	var supportedOperations []string
 	for _, ii := range cfg.InterfaceRegistry.ListImplementations(sdk.MsgInterfaceProtoName) {
-		_, err := cfg.InterfaceRegistry.Resolve(ii)
+		resolvedMsg, err := cfg.InterfaceRegistry.Resolve(ii)
 		if err != nil {
 			continue
 		}
 
-		supportedOperations = append(supportedOperations, ii)
+		if _, ok := resolvedMsg.(sdk.Msg); ok {
+			supportedOperations = append(supportedOperations, ii)
+		}
 	}
 
 	supportedOperations = append(
@@ -513,11 +514,19 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 		panic("block results transactions do now match block transactions")
 	}
 	// process begin and end block txs
-	finalizeBlockTx := &rosettatypes.Transaction{
+	beginBlockTx := &rosettatypes.Transaction{
 		TransactionIdentifier: &rosettatypes.TransactionIdentifier{Hash: c.converter.ToRosetta().BeginBlockTxHash(blockInfo.BlockID.Hash)},
 		Operations: AddOperationIndexes(
 			nil,
-			c.converter.ToRosetta().BalanceOps(StatusTxSuccess, blockResults.FinalizeBlockEvents),
+			c.converter.ToRosetta().BalanceOps(StatusTxSuccess, blockResults.BeginBlockEvents),
+		),
+	}
+
+	endBlockTx := &rosettatypes.Transaction{
+		TransactionIdentifier: &rosettatypes.TransactionIdentifier{Hash: c.converter.ToRosetta().EndBlockTxHash(blockInfo.BlockID.Hash)},
+		Operations: AddOperationIndexes(
+			nil,
+			c.converter.ToRosetta().BalanceOps(StatusTxSuccess, blockResults.EndBlockEvents),
 		),
 	}
 
@@ -532,8 +541,9 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 	}
 
 	finalTxs := make([]*rosettatypes.Transaction, 0, 2+len(deliverTx))
+	finalTxs = append(finalTxs, beginBlockTx)
 	finalTxs = append(finalTxs, deliverTx...)
-	finalTxs = append(finalTxs, finalizeBlockTx)
+	finalTxs = append(finalTxs, endBlockTx)
 
 	return crgtypes.BlockTransactionsResponse{
 		BlockResponse: c.converter.ToRosetta().BlockResponse(blockInfo),

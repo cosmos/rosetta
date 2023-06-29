@@ -51,6 +51,7 @@ simd rosetta
      --tendermint "tendermint endpoint (ex: localhost:26657)"
      --grpc "gRPC endpoint (ex: localhost:9090)"
      --addr "rosetta binding address (ex: :8080)"
+     --grpc-types-server (optional) "gRPC endpoint for message descriptor types"
 ```
 
 ## Use Rosetta Standalone
@@ -62,6 +63,14 @@ go install cosmossdk.io/tools/rosetta/cmd/rosetta
 ```
 
 Alternatively, for building from source, simply run `make rosetta`. The binary will be located in `tools/rosetta`.
+
+## Plugins
+
+To use Rosetta standalone over any chain, it is possible to easily achieve it by setting up required prefixes and registering zone specific interfaces through plugins.
+
+Each plugin is a minimalist implementation of `InitZone` and `RegisterInterfaces` which allow Rosetta to parse chain specific data. There is an example for cosmos-hub chain under `plugins/default/` folder
+
+The plugin is selected through the cli `--blockchain` flag
 
 ## Extensions
 
