@@ -18,27 +18,27 @@ import (
 
 // configuration defaults constants
 const (
-	// DefaultBlockchain defines the cosmos-hub blockchain identifier name
+	// DefaultBlockchain defines the default blockchain identifier name
 	DefaultBlockchain = "app"
-	// DefaultAddr defines the cosmos-hub rosetta binding address
+	// DefaultAddr defines the default rosetta binding address
 	DefaultAddr = ":8080"
-	// DefaultRetries is the cosmos-hub number of retries
+	// DefaultRetries is the default number of retries
 	DefaultRetries = 5
-	// DefaultCometEndpoint is the cosmos-hub value for the CometBFT endpoint
+	// DefaultCometEndpoint is the default value for the CometBFT endpoint
 	DefaultCometEndpoint = "localhost:26657"
-	// DefaultGRPCEndpoint is the cosmos-hub value for the gRPC endpoint
+	// DefaultGRPCEndpoint is the default value for the gRPC endpoint
 	DefaultGRPCEndpoint = "localhost:9090"
-	// DefaultGRPCEndpoint is the cosmos-hub value for the gRPC endpoint
+	// DefaultGRPCEndpoint is the default value for the gRPC endpoint
 	DefaultGRPCTypesServerEndpoint = ""
-	// DefaultNetwork defines the cosmos-hub network name
+	// DefaultNetwork defines the default network name
 	DefaultNetwork = "network"
-	// DefaultOffline defines the cosmos-hub offline value
+	// DefaultOffline defines the default offline value
 	DefaultOffline = false
 	// DefaultEnableFeeSuggestion indicates to use fee suggestion if `construction/metadata` is called without gas limit and price
 	DefaultEnableFeeSuggestion = false
-	// DenomToSuggest defines the cosmos-hub denom for fee suggestion
+	// DenomToSuggest defines the default denom for fee suggestion
 	DenomToSuggest = "uatom"
-	// DefaultPrices defines the cosmos-hub list of prices to suggest
+	// DefaultPrices defines the default list of prices to suggest
 	DefaultPrices = "1uatom,1stake"
 )
 
@@ -72,7 +72,7 @@ type Config struct {
 	// GRPCEndpoint defines the cosmos application gRPC endpoint
 	// usually it is located at 9090 port
 	GRPCEndpoint string
-	// Addr defines the cosmos-hub address to bind the rosetta server to
+	// Addr defines the default address to bind the rosetta server to
 	// defaults to DefaultAddr
 	Addr string
 	// Retries defines the maximum number of retries
@@ -84,13 +84,13 @@ type Config struct {
 	EnableFeeSuggestion bool
 	// GasToSuggest defines the gas limit for fee suggestion
 	GasToSuggest int
-	// DenomToSuggest defines the cosmos-hub denom for fee suggestion
+	// DenomToSuggest defines the default denom for fee suggestion
 	DenomToSuggest string
 	// GasPrices defines the gas prices for fee suggestion
 	GasPrices sdk.DecCoins
-	// Codec overrides the cosmos-hub data and construction api client codecs
+	// Codec overrides the default data and construction api client codecs
 	Codec *codec.ProtoCodec
-	// InterfaceRegistry overrides the cosmos-hub data and construction api interface registry
+	// InterfaceRegistry overrides the default data and construction api interface registry
 	InterfaceRegistry codectypes.InterfaceRegistry
 }
 
@@ -134,7 +134,7 @@ func (c *Config) validate() error {
 			}
 		}
 		if !found {
-			return fmt.Errorf("cosmos-hub suggest denom is not found in prices to suggest")
+			return fmt.Errorf("default suggest denom is not found in prices to suggest")
 		}
 	}
 
@@ -266,8 +266,8 @@ func SetFlags(flags *pflag.FlagSet) {
 	flags.String(FlagAddr, DefaultAddr, "the address rosetta will bind to")
 	flags.Int(FlagRetries, DefaultRetries, "the number of retries that will be done before quitting")
 	flags.Bool(FlagOffline, DefaultOffline, "run rosetta only with construction API")
-	flags.Bool(FlagEnableFeeSuggestion, DefaultEnableFeeSuggestion, "enable cosmos-hub fee suggestion")
-	flags.Int(FlagGasToSuggest, clientflags.DefaultGasLimit, "cosmos-hub gas for fee suggestion")
-	flags.String(FlagDenomToSuggest, DenomToSuggest, "cosmos-hub denom for fee suggestion")
-	flags.String(FlagPricesToSuggest, DefaultPrices, "cosmos-hub prices for fee suggestion")
+	flags.Bool(FlagEnableFeeSuggestion, DefaultEnableFeeSuggestion, "enable default fee suggestion")
+	flags.Int(FlagGasToSuggest, clientflags.DefaultGasLimit, "default gas for fee suggestion")
+	flags.String(FlagDenomToSuggest, DenomToSuggest, "default denom for fee suggestion")
+	flags.String(FlagPricesToSuggest, DefaultPrices, "default prices for fee suggestion")
 }
