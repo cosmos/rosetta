@@ -1,4 +1,4 @@
-// nolint:SA1019 //Since we are usinbg grpc_reflection_v1alpha which is deprecated, we excuse this rule
+// nolint>staticcheck:SA1019 //Since we are usinbg grpc_reflection_v1alpha which is deprecated, we excuse this rule
 package rosetta
 
 import (
