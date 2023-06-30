@@ -6,8 +6,10 @@ rosetta:
 	go build -mod=readonly ./cmd/rosetta
 
 build:
-	# cd plugins/cosmos-hub && make plugin
 	go build -mod=readonly ./cmd/rosetta
+
+plugin:
+	cd plugins/cosmos-hub && make plugin
 
 test:
 	go test -mod=readonly -race ./...
