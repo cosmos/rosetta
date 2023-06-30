@@ -45,8 +45,8 @@ func (s *PluginTestSuite) TestLoadPlugin() {
 			interfaceListMap[interfaceTypeURL] = true
 		}
 
-		for _, requiredInterfaceTypeUrl := range s.requiredInterfaces {
-			s.Require().True(interfaceListMap[requiredInterfaceTypeUrl])
+		for _, requiredInterfaceTypeURL := range s.requiredInterfaces {
+			s.Require().True(interfaceListMap[requiredInterfaceTypeURL])
 		}
 	})
 }
