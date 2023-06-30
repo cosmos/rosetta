@@ -1,3 +1,4 @@
+// nolint:SA1019 -- Since we are usinbg grpc_reflection_v1alpha which is deprecated, we excuse this rule
 package rosetta
 
 import (
@@ -22,7 +23,7 @@ func ReflectInterfaces(ir codectypes.InterfaceRegistry, endpoint string) (err er
 		return err
 	}
 
-	fdSet, err := getFileDescriptorSet(client, ctx)
+	fdSet, err := getFileDescriptorSet(ctx, client)
 	if err != nil {
 		return err
 	}
@@ -49,7 +50,7 @@ func openClient(endpoint string) (client *grpc.ClientConn, err error) {
 	return client, err
 }
 
-func getFileDescriptorSet(client *grpc.ClientConn, c context.Context) (fdSet *descriptorpb.FileDescriptorSet, err error) {
+func getFileDescriptorSet(c context.Context, client *grpc.ClientConn) (fdSet *descriptorpb.FileDescriptorSet, err error) {
 	fdSet = &descriptorpb.FileDescriptorSet{}
 
 	interfaceImplNames, err := getInterfaceImplNames(c, client)
@@ -164,7 +165,7 @@ func cleanImplMsgNames(implMessages []string) (cleanImplMessages []string) {
 }
 
 func registerProtoInterface(registry codectypes.InterfaceRegistry, fileDescriptor *descriptorpb.FileDescriptorProto) {
-	name := "/" + strings.Replace(fileDescriptor.GetName(), "/", ".", -1)
+	name := "/" + strings.ReplaceAll(fileDescriptor.GetName(), "/", ".")
 	descriptorMessageInterface := fileDescriptor.ProtoReflect().Interface()
 	registry.RegisterInterface(name, &descriptorMessageInterface)
 }

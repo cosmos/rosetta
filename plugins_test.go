@@ -41,8 +41,8 @@ func (s *PluginTestSuite) TestLoadPlugin() {
 		interfaceList := s.ir.ListAllInterfaces()
 
 		interfaceListMap := make(map[string]bool)
-		for _, interfaceTypeUrl := range interfaceList {
-			interfaceListMap[interfaceTypeUrl] = true
+		for _, interfaceTypeURL := range interfaceList {
+			interfaceListMap[interfaceTypeURL] = true
 		}
 
 		for _, requiredInterfaceTypeUrl := range s.requiredInterfaces {
