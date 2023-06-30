@@ -3,17 +3,19 @@ package rosetta
 
 import (
 	"context"
-	reflectionv1beta1 "cosmossdk.io/api/cosmos/base/reflection/v1beta1"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"strings"
+
+	reflectionv1beta1 "cosmossdk.io/api/cosmos/base/reflection/v1beta1"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"io"
-	"strings"
 )
 
 func ReflectInterfaces(ir codectypes.InterfaceRegistry, endpoint string) (err error) {
