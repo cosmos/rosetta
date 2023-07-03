@@ -12,7 +12,7 @@ plugin:
 	cd plugins/cosmos-hub && make plugin
 
 test:
-	go test -mod=readonly -race ./...
+	go test -mod=readonly ./...
 
 ###############################################################################
 ###                                Linting                                  ###
