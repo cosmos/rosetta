@@ -298,20 +298,20 @@ func (s *ConverterTestSuite) TestBalanceOps() {
 	})
 
 	// TODO - Investigate / fix sdk update discrepancies
-	//s.Run("multiple balance ops from 2 multicoins event", func() {
-	//	subBalanceOp := bank.NewCoinSpentEvent(
-	//		sdk.AccAddress("test"),
-	//		sdk.NewCoins(sdk.NewInt64Coin("test", 10), sdk.NewInt64Coin("utxo", 10)),
-	//	)
-	//
-	//	addBalanceOp := bank.NewCoinReceivedEvent(
-	//		sdk.AccAddress("test"),
-	//		sdk.NewCoins(sdk.NewInt64Coin("test", 10), sdk.NewInt64Coin("utxo", 10)),
-	//	)
-	//
-	//	ops := s.c.ToRosetta().BalanceOps("", []abci.Event{(abci.Event)(subBalanceOp), (abci.Event)(addBalanceOp)})
-	//	s.Len(ops, 4)
-	//})
+	s.Run("multiple balance ops from 2 multicoins event", func() {
+		subBalanceOp := bank.NewCoinSpentEvent(
+			sdk.AccAddress("test"),
+			sdk.NewCoins(sdk.NewInt64Coin("test", 10), sdk.NewInt64Coin("utxo", 10)),
+		)
+
+		addBalanceOp := bank.NewCoinReceivedEvent(
+			sdk.AccAddress("test"),
+			sdk.NewCoins(sdk.NewInt64Coin("test", 10), sdk.NewInt64Coin("utxo", 10)),
+		)
+
+		ops := s.c.ToRosetta().BalanceOps("", []abci.Event{(abci.Event)(subBalanceOp), (abci.Event)(addBalanceOp)})
+		s.Len(ops, 4)
+	})
 
 	s.Run("spec broken", func() {
 		s.Require().Panics(func() {
