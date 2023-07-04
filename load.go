@@ -39,11 +39,11 @@ func ReflectInterfaces(ir codectypes.InterfaceRegistry, endpoint string) (err er
 }
 
 func openClient(endpoint string) (client *grpc.ClientConn, err error) {
-	creds := credentials.NewTLS(&tls.Config{
+	tlsCredentials := credentials.NewTLS(&tls.Config{
 		MinVersion: tls.VersionTLS12,
 	})
 
-	client, err = grpc.Dial(endpoint, grpc.WithTransportCredentials(creds))
+	client, err = grpc.Dial(endpoint, grpc.WithTransportCredentials(tlsCredentials))
 	if err != nil {
 		fmt.Println("[ERROR] getting grpc client connection")
 		return nil, err
