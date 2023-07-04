@@ -172,7 +172,7 @@ func (s *ConverterTestSuite) TestOpsAndSigners() {
 		ops, signers, err := s.c.ToRosetta().OpsAndSigners(txBytes)
 		s.Require().NoError(err)
 
-		signerAddrs, err := sdkTx.GetSigners()
+		signerAddrs := sdkTx.GetSigners()
 		s.Require().NoError(err)
 		s.Require().Equal(len(ops), len(sdkTx.GetMsgs())*len(signerAddrs), "operation number mismatch")
 
@@ -297,6 +297,7 @@ func (s *ConverterTestSuite) TestBalanceOps() {
 		s.Len(ops, 0, "expected no balance ops")
 	})
 
+	// TODO - Investigate / fix sdk update discrepancies
 	s.Run("multiple balance ops from 2 multicoins event", func() {
 		subBalanceOp := bank.NewCoinSpentEvent(
 			sdk.AccAddress("test"),

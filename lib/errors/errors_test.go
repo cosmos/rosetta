@@ -9,7 +9,7 @@ import (
 
 func TestRegisterError(t *testing.T) {
 	var error *Error
-	// this is the number of errors registered by default in errors.go
+	// this is the number of errors registered by cosmos-hub in errors.go
 	registeredErrorsCount := 16
 	assert.Equal(t, len(registry.list()), registeredErrorsCount)
 	assert.ElementsMatch(t, registry.list(), ListErrors())
