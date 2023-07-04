@@ -30,7 +30,6 @@ func ReflectInterfaces(ir codectypes.InterfaceRegistry, endpoint string) (err er
 		return err
 	}
 
-	fmt.Println("got fdset")
 	for _, descriptorProto := range fdSet.File {
 		if descriptorProto != nil {
 			registerProtoInterface(ir, descriptorProto)
