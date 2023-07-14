@@ -15,7 +15,7 @@ Rosetta can be executed as a standalone service, it connects to the node endpoin
 Install Rosetta standalone server with the following command:
 
 ```bash
-go install cosmossdk.io/rosetta/cmd/rosetta
+go install cosmossdk.io/tools/rosettagit 
 ```
 
 Alternatively, for building from source, simply run `make rosetta`. The binary will be located in the root folder.
