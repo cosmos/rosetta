@@ -8,8 +8,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
-func LoadPlugin(ir codectypes.InterfaceRegistry, blockchain string) (err error) {
-	pluginPathMain := fmt.Sprintf("./plugins/%s/main.so", blockchain)
+func LoadPlugin(ir codectypes.InterfaceRegistry, pluginLocation string) (err error) {
+	pluginPathMain := fmt.Sprintf("./plugins/%s/main.so", pluginLocation)
+
 	if _, err := os.Stat(pluginPathMain); os.IsExist(err) {
 		fmt.Printf("Plugin file '%s' does not exist...\n", pluginPathMain)
 		return err

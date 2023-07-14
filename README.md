@@ -15,10 +15,10 @@ Rosetta can be executed as a standalone service, it connects to the node endpoin
 Install Rosetta standalone server with the following command:
 
 ```bash
-go install cosmossdk.io/rosetta/cmd/rosetta
+go install cosmossdk.io/tools/rosetta
 ```
 
-Alternatively, for building from source, simply run `make rosetta`. The binary will be located in `tools/rosetta`.
+Alternatively, for building from source, simply run `make rosetta`. The binary will be located in the root folder.
 
 ### Native - As a node command
 
@@ -87,7 +87,7 @@ In order to add a new plugin:
 2. Add a `main.go` file with the mentioned methods above.
 3. Build the code binary through `go build -buildmode=plugin -o main.so main.go` 
 
-The plugin folder is selected through the cli `--blockchain` flag and loaded into the Rosetta server.
+The plugin folder is selected through the cli `--plugin` flag and loaded into the Rosetta server.
 
 ## Extensions
 
