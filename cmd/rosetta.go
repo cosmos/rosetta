@@ -28,7 +28,7 @@ func RosettaCommand(ir codectypes.InterfaceRegistry, cdc codec.Codec) *cobra.Com
 			}
 			conf.WithCodec(ir, protoCodec)
 
-			err = rosetta.LoadPlugin(ir, cmd.Flag("blockchain").Value.String())
+			err = rosetta.LoadPlugin(ir, cmd.Flag("plugin").Value.String())
 			if err != nil {
 				fmt.Printf("[Rosetta]- Error while loading cosmos-hub plugin: %s", err.Error())
 				return err
