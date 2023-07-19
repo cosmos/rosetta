@@ -28,6 +28,8 @@ const (
 	DefaultCometEndpoint = "localhost:26657"
 	// DefaultGRPCEndpoint is the default value for the gRPC endpoint
 	DefaultGRPCEndpoint = "localhost:9090"
+	// DefaultGRPCEndpoint is the default value for the gRPC endpoint
+	DefaultGRPCTypesServerEndpoint = ""
 	// DefaultNetwork defines the default network name
 	DefaultNetwork = "network"
 	// DefaultOffline defines the default offline value
@@ -38,21 +40,25 @@ const (
 	DenomToSuggest = "uatom"
 	// DefaultPrices defines the default list of prices to suggest
 	DefaultPrices = "1uatom,1stake"
+	// DefaultPlugin define plugin location for interface and type registry
+	DefaultPlugin = "cosmos-hub"
 )
 
 // configuration flags
 const (
-	FlagBlockchain          = "blockchain"
-	FlagNetwork             = "network"
-	FlagTendermintEndpoint  = "tendermint"
-	FlagGRPCEndpoint        = "grpc"
-	FlagAddr                = "addr"
-	FlagRetries             = "retries"
-	FlagOffline             = "offline"
-	FlagEnableFeeSuggestion = "enable-fee-suggestion"
-	FlagGasToSuggest        = "gas-to-suggest"
-	FlagDenomToSuggest      = "denom-to-suggest"
-	FlagPricesToSuggest     = "prices-to-suggest"
+	FlagBlockchain              = "blockchain"
+	FlagNetwork                 = "network"
+	FlagTendermintEndpoint      = "tendermint"
+	FlagGRPCEndpoint            = "grpc"
+	FlagGRPCTypesServerEndpoint = "grpc-types-server"
+	FlagAddr                    = "addr"
+	FlagRetries                 = "retries"
+	FlagOffline                 = "offline"
+	FlagEnableFeeSuggestion     = "enable-fee-suggestion"
+	FlagGasToSuggest            = "gas-to-suggest"
+	FlagDenomToSuggest          = "denom-to-suggest"
+	FlagPricesToSuggest         = "prices-to-suggest"
+	FlagPlugin                  = "plugin"
 )
 
 // Config defines the configuration of the rosetta server
@@ -259,6 +265,7 @@ func SetFlags(flags *pflag.FlagSet) {
 	flags.String(FlagNetwork, DefaultNetwork, "the network name")
 	flags.String(FlagTendermintEndpoint, DefaultCometEndpoint, "the CometBFT rpc endpoint, without tcp://")
 	flags.String(FlagGRPCEndpoint, DefaultGRPCEndpoint, "the app gRPC endpoint")
+	flags.String(FlagGRPCTypesServerEndpoint, DefaultGRPCTypesServerEndpoint, "the app gRPC Server endpoint for proto messages types and reflection")
 	flags.String(FlagAddr, DefaultAddr, "the address rosetta will bind to")
 	flags.Int(FlagRetries, DefaultRetries, "the number of retries that will be done before quitting")
 	flags.Bool(FlagOffline, DefaultOffline, "run rosetta only with construction API")
@@ -266,4 +273,5 @@ func SetFlags(flags *pflag.FlagSet) {
 	flags.Int(FlagGasToSuggest, clientflags.DefaultGasLimit, "default gas for fee suggestion")
 	flags.String(FlagDenomToSuggest, DenomToSuggest, "default denom for fee suggestion")
 	flags.String(FlagPricesToSuggest, DefaultPrices, "default prices for fee suggestion")
+	flags.String(FlagPlugin, DefaultPlugin, "plugin folder name")
 }

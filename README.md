@@ -1,12 +1,28 @@
 # Rosetta
 
-The `rosetta` package implements Coinbase's [Rosetta API](https://www.rosetta-api.org). This document provides instructions on how to use the Rosetta API integration. For information about the motivation and design choices, refer to [ADR 035](https://docs.cosmos.network/main/architecture/adr-035-rosetta-api-support).
+The `rosetta` project implements Coinbase's [Rosetta API](https://www.rosetta-api.org). This document provides instructions on how to use the Rosetta API integration. For information about the motivation and design choices, refer to [ADR 035](https://docs.cosmos.network/main/architecture/adr-035-rosetta-api-support).
 
-## Add Rosetta Command
+## Installing Rosetta
 
 The Rosetta API server is a stand-alone server that connects to a node of a chain developed with Cosmos SDK.
 
-To enable Rosetta API support, it's required to add the `RosettaCommand` to your application's root command file (e.g. `simd/cmd/root.go`).
+Rosetta can be added to any cosmos chain node. standalone or natively.
+
+### Standalone 
+
+Rosetta can be executed as a standalone service, it connects to the node endpoints and expose the required endpoints.
+
+Install Rosetta standalone server with the following command:
+
+```bash
+go install cosmossdk.io/tools/rosetta
+```
+
+Alternatively, for building from source, simply run `make rosetta`. The binary will be located in the root folder.
+
+### Native - As a node command
+
+To enable Native Rosetta API support, it's required to add the `RosettaCommand` to your application's root command file (e.g. `simd/cmd/root.go`).
 
 Import the `rosettaCmd` package:
 
@@ -38,30 +54,40 @@ An implementation example can be found in `simapp` package.
 
 To run Rosetta in your application CLI, use the following command:
 
+> **Note:** if using the native approach, add your node name before any rosetta comand.
+
 ```shell
-simd rosetta --help
+rosetta --help
 ```
 
 To test and run Rosetta API endpoints for applications that are running and exposed, use the following command:
 
 ```shell
-simd rosetta
+rosetta
      --blockchain "your application name (ex: gaia)"
      --network "your chain identifier (ex: testnet-1)"
      --tendermint "tendermint endpoint (ex: localhost:26657)"
      --grpc "gRPC endpoint (ex: localhost:9090)"
      --addr "rosetta binding address (ex: :8080)"
+     --grpc-types-server (optional) "gRPC endpoint for message descriptor types"
 ```
 
-## Use Rosetta Standalone
+## Plugins - Multi chain connections
 
-To use Rosetta standalone, without having to add it in your application, install it with the following command:
+Rosetta will try to reflect the node types trough reflection over the node gRPC endpoints, there may be cases were this approach is not enough. It is possible to extend or implement the required types easily trough plugins.
 
-```bash
-go install cosmossdk.io/tools/rosetta/cmd/rosetta
-```
+To use Rosetta over any chain, it is required to set up prefixes and registering zone specific interfaces through plugins.
 
-Alternatively, for building from source, simply run `make rosetta`. The binary will be located in `tools/rosetta`.
+Each plugin is a minimalist implementation of `InitZone` and `RegisterInterfaces` which allow Rosetta to parse chain specific data. There is an example for cosmos-hub chain under `plugins/cosmos-hun/` folder
+- **InitZone**: An empty method that is executed first and defines prefixes, parameters and other settings.
+- **RegisterInterfaces**: This method receives an interface registry which is were the zone specific types and interfaces will be loaded
+
+In order to add a new plugin: 
+1. Create a folder over `plugins` folder with the name of the desired zone
+2. Add a `main.go` file with the mentioned methods above.
+3. Build the code binary through `go build -buildmode=plugin -o main.so main.go` 
+
+The plugin folder is selected through the cli `--plugin` flag and loaded into the Rosetta server.
 
 ## Extensions
 

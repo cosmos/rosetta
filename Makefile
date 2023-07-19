@@ -6,10 +6,13 @@ rosetta:
 	go build -mod=readonly ./cmd/rosetta
 
 build:
-	go build ./cmd/rosetta.go
+	go build -mod=readonly ./cmd/rosetta
+
+plugin:
+	cd plugins/cosmos-hub && make plugin
 
 test:
-	go test -mod=readonly -race ./...
+	go test -mod=readonly ./...
 
 ###############################################################################
 ###                                Linting                                  ###
