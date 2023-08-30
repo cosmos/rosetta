@@ -11,8 +11,8 @@ import (
 	"github.com/cosmos/rosetta-sdk-go/server"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/tools/rosetta/lib/internal/service"
-	crgtypes "cosmossdk.io/tools/rosetta/lib/types"
+	"cosmossdk.io/rosetta/lib/internal/service"
+	crgtypes "cosmossdk.io/rosetta/lib/types"
 )
 
 const (

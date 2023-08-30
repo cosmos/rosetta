@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	crgerrs "cosmossdk.io/tools/rosetta/lib/errors"
+	crgerrs "cosmossdk.io/rosetta/lib/errors"
 )
 
 // timeToMilliseconds converts time to milliseconds timestamp

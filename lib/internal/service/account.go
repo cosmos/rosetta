@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"cosmossdk.io/tools/rosetta/lib/errors"
-	crgtypes "cosmossdk.io/tools/rosetta/lib/types"
+	"cosmossdk.io/rosetta/lib/errors"
+	crgtypes "cosmossdk.io/rosetta/lib/types"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
