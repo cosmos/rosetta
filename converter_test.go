@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"cosmossdk.io/rosetta"
-	crgerrs "cosmossdk.io/rosetta/lib/errors"
+	"github.com/cosmos/rosetta"
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
 
 	rosettatypes "github.com/coinbase/rosetta-sdk-go/types"
 	abci "github.com/cometbft/cometbft/abci/types"

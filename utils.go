@@ -8,9 +8,9 @@ import (
 	signing2 "cosmossdk.io/x/tx/signing"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	crgerrs "cosmossdk.io/rosetta/lib/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
 )
 
 func parseSignerData(signerData authsigning.SignerData) signing2.SignerData {

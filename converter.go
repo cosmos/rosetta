@@ -18,8 +18,8 @@ import (
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
 	sdkmath "cosmossdk.io/math"
-	crgerrs "cosmossdk.io/rosetta/lib/errors"
-	crgtypes "cosmossdk.io/rosetta/lib/types"
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
+	crgtypes "github.com/cosmos/rosetta/lib/types"
 
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"

@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	"cosmossdk.io/rosetta/lib/errors"
-	crgtypes "cosmossdk.io/rosetta/lib/types"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/cosmos/rosetta/lib/errors"
+	crgtypes "github.com/cosmos/rosetta/lib/types"
 )
 
 // AccountBalance retrieves the account balance of an address

@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
-	"cosmossdk.io/rosetta"
+	"github.com/cosmos/rosetta"
 
 	"cosmossdk.io/log"
-	rosettaCmd "cosmossdk.io/rosetta/cmd"
+	rosettaCmd "github.com/cosmos/rosetta/cmd"
 )
 
 func main() {

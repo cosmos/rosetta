@@ -4,7 +4,7 @@ package rosetta_test
 // import (
 //	"testing"
 //
-//	"cosmossdk.io/rosetta"
+//	"github.com/cosmos/rosetta"
 //
 //	"github.com/cosmos/cosmos-sdk/codec"
 //	"github.com/stretchr/testify/suite"

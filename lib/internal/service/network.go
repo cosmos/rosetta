@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"cosmossdk.io/rosetta/lib/errors"
 	coinbase "github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/cosmos/rosetta/lib/errors"
 )
 
 func (on OnlineNetwork) NetworkList(_ context.Context, _ *coinbase.MetadataRequest) (*coinbase.NetworkListResponse, *coinbase.Error) {

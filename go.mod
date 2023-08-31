@@ -1,4 +1,4 @@
-module cosmossdk.io/rosetta
+module github.com/cosmos/rosetta
 
 go 1.20
 
