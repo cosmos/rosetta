@@ -3,10 +3,8 @@ module github.com/cosmos/rosetta
 go 1.20
 
 require (
-	cosmossdk.io/api v0.7.0
-	cosmossdk.io/log v1.1.1-0.20230704160919-88f2c830b0ca
-	cosmossdk.io/math v1.0.1
-	cosmossdk.io/x/tx v0.9.1
+	cosmossdk.io/log v1.2.1
+	cosmossdk.io/math v1.1.2
 	github.com/coinbase/rosetta-sdk-go/types v1.0.0
 	github.com/cometbft/cometbft v0.38.0-rc3
 	github.com/cosmos/cosmos-sdk v0.50.0-beta.0
