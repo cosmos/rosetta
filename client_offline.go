@@ -6,7 +6,7 @@ import (
 
 	"github.com/coinbase/rosetta-sdk-go/types"
 
-	crgerrs "cosmossdk.io/tools/rosetta/lib/errors"
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -79,15 +79,19 @@ func (c *Client) PreprocessOperationsToOptions(_ context.Context, req *types.Con
 	}
 
 	// get the signers
-	signers := tx.GetSigners()
+	signers, err := tx.GetSigners()
+	if err != nil {
+		return nil, err
+	}
+
 	signersStr := make([]string, len(signers))
 	accountIdentifiers := make([]*types.AccountIdentifier, len(signers))
 
 	for i, sig := range signers {
-		addr := sig.String()
-		signersStr[i] = addr
+		addr := sdk.AccAddress(sig)
+		signersStr[i] = addr.String()
 		accountIdentifiers[i] = &types.AccountIdentifier{
-			Address: addr,
+			Address: addr.String(),
 		}
 	}
 	// get the metadata request information
