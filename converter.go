@@ -121,12 +121,12 @@ func NewConverter(cdc *codec.ProtoCodec, ir codectypes.InterfaceRegistry, cfg sd
 			parsedSignerData := parseSignerData(signerData)
 			txData, err := parseTxData(tx, parsedSignerData)
 			if err != nil {
-				return nil, err
+				return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting tx data %s", err.Error()))
 			}
 
 			bytesToSign, err := cfg.SignModeHandler().GetSignBytes(context.TODO(), signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT), parsedSignerData, *txData)
 			if err != nil {
-				return nil, err
+				return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting bytes to sign %s", err.Error()))
 			}
 
 			return crypto.Sha256(bytesToSign), nil
@@ -216,7 +216,7 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 func (c converter) Msg(meta map[string]interface{}, msg sdk.Msg) error {
 	metaBytes, err := json.Marshal(meta)
 	if err != nil {
-		return err
+		return crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while marshaling meta to json %s", err.Error()))
 	}
 	return c.cdc.UnmarshalJSON(metaBytes, msg)
 }
@@ -243,7 +243,7 @@ func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, e
 
 	meta, err := c.Meta(msg)
 	if err != nil {
-		return nil, err
+		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting meta from message %s", err.Error()))
 	}
 
 	legacyMsg, ok := msg.(sdk.LegacyMsg)
@@ -296,7 +296,7 @@ func (c converter) Tx(rawTx cmttypes.Tx, txResult *abci.ExecTxResult) (*rosettat
 	for _, msg := range msgs {
 		ops, err := c.Ops(status, msg)
 		if err != nil {
-			return nil, err
+			return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting operations from status and msg %s", err.Error()))
 		}
 		rawTxOps = append(rawTxOps, ops...)
 	}
@@ -592,17 +592,17 @@ func (c converter) OpsAndSigners(txBytes []byte) (ops []*rosettatypes.Operation,
 	// get the signers
 	sdkTx, err := c.txDecode(txBytes)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting tx encoder %s", err.Error()))
 	}
 
 	txBuilder, err := c.txBuilderFromTx(sdkTx)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting tx builder %s", err.Error()))
 	}
 
 	txSigners, err := txBuilder.GetTx().GetSigners()
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting tx signers %s", err.Error()))
 	}
 
 	for _, signer := range txSigners {
@@ -617,17 +617,17 @@ func (c converter) OpsAndSigners(txBytes []byte) (ops []*rosettatypes.Operation,
 func (c converter) SignedTx(txBytes []byte, signatures []*rosettatypes.Signature) (signedTxBytes []byte, err error) {
 	rawTx, err := c.txDecode(txBytes)
 	if err != nil {
-		return nil, err
+		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while decoding tx from bytes %s", err.Error()))
 	}
 
 	txBuilder, err := c.txBuilderFromTx(rawTx)
 	if err != nil {
-		return nil, err
+		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting tx bytes from tx %s", err.Error()))
 	}
 
 	notSignedSigs, err := txBuilder.GetTx().GetSignaturesV2() //
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
+		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting signatures from tx %s", err.Error()))
 	}
 
 	if len(notSignedSigs) != len(signatures) {
@@ -650,12 +650,12 @@ func (c converter) SignedTx(txBytes []byte, signatures []*rosettatypes.Signature
 	}
 
 	if err = txBuilder.SetSignatures(signedSigs...); err != nil {
-		return nil, err
+		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while setting signatures %s", err.Error()))
 	}
 
 	txBytes, err = c.txEncode(txBuilder.GetTx())
 	if err != nil {
-		return nil, err
+		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting bytes from tx %s", err.Error()))
 	}
 
 	return txBytes, nil
@@ -684,12 +684,12 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 	// verify metadata correctness
 	feeAmount, err := sdk.ParseCoinsNormalized(metadata.GasPrice)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrBadArgument, err.Error())
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting signers v2 from tx %s", err.Error()))
 	}
 
 	signers, err := tx.GetSignaturesV2()
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrBadArgument, err.Error())
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting signers v2 from tx %s", err.Error()))
 	}
 
 	// assert the signers data provided in options are the same as the expected signing accounts
@@ -701,7 +701,7 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 	// add transaction metadata
 	builder, err := c.txBuilderFromTx(tx)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting tx builder %s", err.Error()))
 	}
 	builder.SetFeeAmount(feeAmount)
 	builder.SetGasLimit(metadata.GasLimit)
@@ -717,7 +717,7 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 		// by checking if the signer at index i matches the pubkey at index
 		pubKey, err := c.ToSDK().PubKey(rosPubKeys[0])
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while setting signatures %s", err.Error()))
 		}
 		if !bytes.Equal(pubKey.Address().Bytes(), signer.PubKey.Address()) {
 			return nil, nil, crgerrs.WrapError(
@@ -764,13 +764,13 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 	// information of each account in a stateless way
 	err = builder.SetSignatures(partialSignatures...)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while setting signatures %s", err.Error()))
 	}
 
 	// finally encode the tx
 	txBytes, err = c.txEncode(builder.GetTx())
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while encoding tx %s", err.Error()))
 	}
 
 	return txBytes, payloadsToSign, nil
@@ -781,7 +781,7 @@ func (c converter) SignerData(anyAccount *codectypes.Any) (*SignerData, error) {
 	var acc sdkclient.Account
 	err := c.ir.UnpackAny(anyAccount, &acc)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
+		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while unpacking an account %s", err.Error()))
 	}
 
 	return &SignerData{

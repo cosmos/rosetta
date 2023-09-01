@@ -8,6 +8,8 @@ import (
 	"io"
 	"strings"
 
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
+
 	reflectionv1beta1 "cosmossdk.io/api/cosmos/base/reflection/v1beta1"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -22,12 +24,12 @@ func ReflectInterfaces(ir codectypes.InterfaceRegistry, endpoint string) (err er
 	ctx := context.Background()
 	client, err := openClient(endpoint)
 	if err != nil {
-		return err
+		return crgerrs.WrapError(crgerrs.ErrClient, fmt.Sprintf("While opening client %s", err.Error()))
 	}
 
 	fdSet, err := getFileDescriptorSet(ctx, client)
 	if err != nil {
-		return err
+		return crgerrs.WrapError(crgerrs.ErrClient, fmt.Sprintf("While getting file descriptor set %s", err.Error()))
 	}
 
 	for _, descriptorProto := range fdSet.File {
@@ -35,7 +37,7 @@ func ReflectInterfaces(ir codectypes.InterfaceRegistry, endpoint string) (err er
 			registerProtoInterface(ir, descriptorProto)
 		}
 	}
-	return err
+	return nil
 }
 
 func openClient(endpoint string) (client *grpc.ClientConn, err error) {
@@ -45,10 +47,9 @@ func openClient(endpoint string) (client *grpc.ClientConn, err error) {
 
 	client, err = grpc.Dial(endpoint, grpc.WithTransportCredentials(tlsCredentials))
 	if err != nil {
-		fmt.Println("[ERROR] getting grpc client connection")
-		return nil, err
+		return nil, crgerrs.WrapError(crgerrs.ErrClient, fmt.Sprintf("getting grpc client connection %s", err.Error()))
 	}
-	return client, err
+	return client, nil
 }
 
 func getFileDescriptorSet(c context.Context, client *grpc.ClientConn) (fdSet *descriptorpb.FileDescriptorSet, err error) {
@@ -56,12 +57,12 @@ func getFileDescriptorSet(c context.Context, client *grpc.ClientConn) (fdSet *de
 
 	interfaceImplNames, err := getInterfaceImplNames(c, client)
 	if err != nil {
-		return fdSet, err
+		return fdSet, crgerrs.WrapError(crgerrs.ErrClient, fmt.Sprintf("unable to initialize files descriptor set %s", err.Error()))
 	}
 
 	reflectClient, err := grpc_reflection_v1alpha.NewServerReflectionClient(client).ServerReflectionInfo(c)
 	if err != nil {
-		return fdSet, err
+		return fdSet, crgerrs.WrapError(crgerrs.ErrClient, fmt.Sprintf("while generating reflection client %s", err.Error()))
 	}
 
 	fdMap := map[string]*descriptorpb.FileDescriptorProto{}
@@ -143,15 +144,16 @@ func getFileDescriptorSet(c context.Context, client *grpc.ClientConn) (fdSet *de
 func getInterfaceImplNames(c context.Context, client *grpc.ClientConn) (interfaceImplNames []string, err error) {
 	cosmosReflectBetaClient := reflectionv1beta1.NewReflectionServiceClient(client)
 	interfacesRes, err := cosmosReflectBetaClient.ListAllInterfaces(c, &reflectionv1beta1.ListAllInterfacesRequest{})
+	if err != nil {
+		return nil, crgerrs.WrapError(crgerrs.ErrClient, fmt.Sprintf("listing client registered interfaces %s", err.Error()))
+	}
 
-	if err == nil {
-		for _, iface := range interfacesRes.InterfaceNames {
-			implRes, err := cosmosReflectBetaClient.ListImplementations(c, &reflectionv1beta1.ListImplementationsRequest{
-				InterfaceName: iface,
-			})
-			if err == nil {
-				interfaceImplNames = append(interfaceImplNames, cleanImplMsgNames(implRes.GetImplementationMessageNames())...)
-			}
+	for _, iface := range interfacesRes.InterfaceNames {
+		implRes, err := cosmosReflectBetaClient.ListImplementations(c, &reflectionv1beta1.ListImplementationsRequest{
+			InterfaceName: iface,
+		})
+		if err == nil {
+			interfaceImplNames = append(interfaceImplNames, cleanImplMsgNames(implRes.GetImplementationMessageNames())...)
 		}
 	}
 	return interfaceImplNames, err
