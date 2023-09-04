@@ -223,7 +223,7 @@ func (s *ConverterTestSuite) TestBeginEndBlockAndHashToTxType() {
 func (s *ConverterTestSuite) TestSigningComponents() {
 	s.Run("invalid metadata coins", func() {
 		_, _, err := s.c.ToRosetta().SigningComponents(nil, &rosetta.ConstructionMetadata{GasPrice: "invalid"}, nil)
-		s.Require().ErrorIs(err, crgerrs.ErrBadArgument)
+		s.Require().ErrorIs(err, crgerrs.ErrConverter)
 	})
 
 	s.Run("length signers data does not match signers", func() {

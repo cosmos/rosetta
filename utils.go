@@ -1,7 +1,10 @@
 package rosetta
 
 import (
+	"encoding/json"
+	"fmt"
 	"strconv"
+	"time"
 
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
 	txv1beta1 "cosmossdk.io/api/cosmos/tx/v1beta1"
@@ -12,6 +15,41 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	crgerrs "github.com/cosmos/rosetta/lib/errors"
 )
+
+// timeToMilliseconds converts time to milliseconds timestamp
+func timeToMilliseconds(t time.Time) int64 {
+	return t.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
+}
+
+// unmarshalMetadata unmarshals the given meta to the target
+func unmarshalMetadata(meta map[string]interface{}, target interface{}) error {
+	b, err := json.Marshal(meta)
+	if err != nil {
+		return crgerrs.WrapError(crgerrs.ErrCodec, fmt.Sprintf("marshaling meta on json %s", err.Error()))
+	}
+
+	err = json.Unmarshal(b, target)
+	if err != nil {
+		return crgerrs.WrapError(crgerrs.ErrCodec, fmt.Sprintf("unmarshaling json target %s", err.Error()))
+	}
+
+	return nil
+}
+
+// marshalMetadata marshals the given interface to map[string]interface{}
+func marshalMetadata(o interface{}) (meta map[string]interface{}, err error) {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return nil, crgerrs.WrapError(crgerrs.ErrCodec, fmt.Sprintf("marshaling object into json %s", err.Error()))
+	}
+	meta = make(map[string]interface{})
+	err = json.Unmarshal(b, &meta)
+	if err != nil {
+		return nil, crgerrs.WrapError(crgerrs.ErrCodec, fmt.Sprintf("unmarshaling json into meta %s", err.Error()))
+	}
+
+	return
+}
 
 func parseSignerData(signerData authsigning.SignerData) signing2.SignerData {
 	parsedSignerDataPublicKey := anypb.Any{
@@ -57,7 +95,7 @@ func parseTxMessages(tx authsigning.Tx) ([]*anypb.Any, error) {
 
 	txPubKeys, err := tx.GetPubKeys()
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, "Error on parsing TxData: ")
+		return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, fmt.Sprintf("Getting pub keys from tx %s", err.Error()))
 	}
 	for _, txPubKey := range txPubKeys {
 		parsedPubKey := anypb.Any{
@@ -101,7 +139,7 @@ func parseAuthInfo(tx authsigning.Tx, signerData signing2.SignerData) *txv1beta1
 func parseTxData(tx authsigning.Tx, signerData signing2.SignerData) (*signing2.TxData, error) {
 	parsedTxMsgs, err := parseTxMessages(tx)
 	if err != nil {
-		return nil, err
+		return nil, crgerrs.WrapError(crgerrs.ErrCodec, fmt.Sprintf("parsing tx data %s", err.Error()))
 	}
 
 	txData := signing2.TxData{
@@ -118,5 +156,5 @@ func parseTxData(tx authsigning.Tx, signerData signing2.SignerData) (*signing2.T
 		BodyHasUnknownNonCriticals: false,
 	}
 
-	return &txData, err
+	return &txData, nil
 }
