@@ -1,0 +1,34 @@
+name: Rosetta-cli integration test
+
+on:
+  push:
+    branches:
+      - main
+      - release/**
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-arch: ["amd64", "arm", "arm64"]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+          check-latest: true
+      - name: Build
+        if: env.GIT_DIFF
+        run: GOARCH=${{ matrix.go-arch }} make build
+        ###################
+        ## Build Tooling ##
+        ###################
+      - name: Build Rosetta
+        if: env.GIT_DIFF
+        run: GOARCH=${{ matrix.go-arch }} make rosetta
