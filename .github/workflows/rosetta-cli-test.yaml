@@ -32,3 +32,5 @@ jobs:
       - name: Build Rosetta
         if: env.GIT_DIFF
         run: GOARCH=${{ matrix.go-arch }} make rosetta
+      - name: Rosetta-cli setup & test
+        run: GOARCH=${{ matrix.go-arch }} make rosetta-cli

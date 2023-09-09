@@ -32,4 +32,6 @@ lint-fix:
 .PHONY: all build rosetta test lint lint-fix
 
 rosetta-cli:
-	echo "--> Running rosetta CLI"
+	echo "Installing rosetta linter"
+	curl -sSfL https://raw.githubusercontent.com/coinbase/rosetta-cli/master/scripts/install.sh | sh -s
+	./rosetta-cli --configuration-file configs/rosetta-config-cli.json check:data
