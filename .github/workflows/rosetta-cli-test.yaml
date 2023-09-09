@@ -1,4 +1,4 @@
-name: Rosetta-cli integration test
+name: rosetta-cli-test
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
         if: env.GIT_DIFF
         run: GOARCH=${{ matrix.go-arch }} make build
         ###################
-        ## Build Tooling ##
+        ## Build Tooling ##code .
         ###################
       - name: Build Rosetta
         if: env.GIT_DIFF

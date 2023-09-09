@@ -49,3 +49,6 @@ jobs:
       - name: Build Rosetta
         if: env.GIT_DIFF
         run: GOARCH=${{ matrix.go-arch }} make rosetta
+      - name: Run proxy in background
+        run: ./rosetta-filecoin-proxy&
+      - run: ./rosetta-cli-test.sh
