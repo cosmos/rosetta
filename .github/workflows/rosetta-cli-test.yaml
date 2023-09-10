@@ -26,7 +26,7 @@ jobs:
     - name: Clone supercharge docs repository
       uses: actions/checkout@v2
       with:
-        repository: https://github.com/cosmos/cosmos-sdk.git
+        repository: cosmos/cosmos-sdk
         path: /
         ref: main
     - name: set up simapp 
