@@ -27,7 +27,6 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: cosmos/cosmos-sdk
-        path: /
         ref: main
     - name: set up simapp 
       run: ls && cd && cd cosmos-sdk && make init-simapp
