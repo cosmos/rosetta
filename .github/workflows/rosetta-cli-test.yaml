@@ -12,8 +12,29 @@ permissions:
   contents: read
 
 jobs:
+  run-simapp:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clone supercharge website repository
+      uses: actions/checkout@v2
+
+    # This part here is cloning a second repository
+    # While cloning the repository:
+    #   - it clones the repo into the given `path`
+    #   - it checks out the branch defined at `ref`
+    - name: Clone supercharge docs repository
+      uses: actions/checkout@v2
+      with:
+        repository: cosmos/cosmos-sdk
+        path: /
+        ref: main
+    - name: set up simapp 
+      run: ls && cd && cd cosmos-sdk && make init-simapp
+
   run-rosetta:
     runs-on: ubuntu-latest
+    needs: run-simapp
     strategy:
       matrix:
         go-arch: ["amd64", "arm", "arm64"]
