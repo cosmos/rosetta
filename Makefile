@@ -34,4 +34,5 @@ lint-fix:
 rosetta-cli:
 	echo "Installing rosetta linter"
 	curl -sSfL https://raw.githubusercontent.com/coinbase/rosetta-cli/master/scripts/install.sh | sh -s
-	./bin/rosetta-cli --configuration-file configs/rosetta-config-cli.json check:data
+	ls
+	./bin/rosetta-cli --configuration-file ./configs/rosetta-config-cli.json check:data
