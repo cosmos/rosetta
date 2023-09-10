@@ -29,7 +29,7 @@ jobs:
         repository: cosmos/cosmos-sdk
         ref: main
     - name: set up simapp 
-      run: make install && ls && export SIMD_BIN=bin/simapp && make init-simapp
+      run: make build && ls && export SIMD_BIN=./build/simd && make init-simapp
 
   run-rosetta:
     runs-on: ubuntu-latest
