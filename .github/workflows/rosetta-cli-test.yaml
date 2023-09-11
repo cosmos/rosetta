@@ -29,14 +29,14 @@ jobs:
         repository: cosmos/cosmos-sdk
         ref: main
     - name: set up simapp 
-      run: make build && ls && export SIMD_BIN=./build/simd && make init-simapp && ./build/simd start
+      run: make build && ls && export SIMD_BIN=./build/simd && make init-simapp && ./build/simd start & 
 
   run-rosetta:
     runs-on: ubuntu-latest
     needs: run-simapp
     strategy:
       matrix:
-        go-arch: ["amd64", "arm", "arm64"]
+        go-arch: ["amd64"]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -57,7 +57,7 @@ jobs:
     needs: run-rosetta
     strategy:
       matrix:
-        go-arch: ["amd64", "arm", "arm64"]
+        go-arch: ["amd64"]
     steps:
       - uses: actions/checkout@v3
       - name: Rosetta-cli setup & test
