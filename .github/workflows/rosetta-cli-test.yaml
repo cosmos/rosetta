@@ -23,23 +23,18 @@ jobs:
         repository: cosmos/cosmos-sdk
         ref: main
     - name: set up simapp 
-      run: make build && ls && export SIMD_BIN=./build/simd && make init-simapp && ./build/simd start & 
+      run: make build && export SIMD_BIN=./build/simd && make init-simapp && ./build/simd start & 
 
   run-rosetta:
     runs-on: ubuntu-latest
     needs: run-simapp
     strategy:
       fail-fast: false
-      matrix:
-        go-arch: ["amd64"]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
           check-latest: true
-      - name: Build
-        run: GOARCH=${{ matrix.go-arch }} make build
       - name: Build Rosetta
         run: make rosetta && make plugin && ./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090 &" 
   run-rosetta-cli-tests:
