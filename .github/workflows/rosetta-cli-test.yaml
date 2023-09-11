@@ -29,19 +29,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: run-simapp
     strategy:
-      fail-fast: false
+      fail-fast: true
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
-        with:
-          check-latest: true
+      - name: review
+        run: cat ./pluigins/cosmos-hub/main.go
       - name: Build Rosetta
         run: make rosetta && make plugin && ./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090 &" 
   run-rosetta-cli-tests:
     runs-on: ubuntu-latest
     needs: run-rosetta
     strategy:
-      fail-fast: false
+      fail-fast: true
     steps:
       - uses: actions/checkout@v3
       - name: Rosetta-cli setup & test
