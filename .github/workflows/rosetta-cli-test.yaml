@@ -31,6 +31,7 @@ jobs:
     strategy:
       fail-fast: true
     steps:
+      - uses: actions/checkout@v3
       - name: review
         run: cat ./plugins/cosmos-hub/main.go
       - name: Build Rosetta
