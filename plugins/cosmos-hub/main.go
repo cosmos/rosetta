@@ -15,7 +15,7 @@ import (
 
 func InitZone() {
 	config := sdk.GetConfig()
-	prefix := "evmos"
+	prefix := "cosmos-hub"
 	config.SetBech32PrefixForAccount(prefix, prefix+"pub")
 }
 
