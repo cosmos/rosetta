@@ -8,14 +8,14 @@ import (
 )
 
 func TestRegisterError(t *testing.T) {
-	var error *Error
+	var err *Error
 	// this is the number of errors registered by cosmos-hub in errors.go
-	registeredErrorsCount := 16
-	assert.Equal(t, len(registry.list()), registeredErrorsCount)
+	registeredErrorsCount := 21
+	assert.Equal(t, registeredErrorsCount, len(registry.list()))
 	assert.ElementsMatch(t, registry.list(), ListErrors())
 	// add a new Error
-	error = RegisterError(69, "nice!", false, "nice!")
-	assert.NotNil(t, error)
+	err = RegisterError(69, "nice!", false, "nice!")
+	assert.NotNil(t, err)
 	// now we have a new error
 	registeredErrorsCount++
 	assert.Equal(t, len(ListErrors()), registeredErrorsCount)
@@ -29,8 +29,8 @@ func TestRegisterError(t *testing.T) {
 	assert.Equal(t, registry.sealed, true)
 	assert.Equal(t, len(errors), registeredErrorsCount)
 	// add a new error on a sealed registry
-	error = RegisterError(1024, "bytes", false, "bytes")
-	assert.NotNil(t, error)
+	err = RegisterError(1024, "bytes", false, "bytes")
+	assert.NotNil(t, err)
 }
 
 func TestError_Error(t *testing.T) {

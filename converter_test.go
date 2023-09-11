@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"cosmossdk.io/tools/rosetta"
-	crgerrs "cosmossdk.io/tools/rosetta/lib/errors"
+	"github.com/cosmos/rosetta"
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
 
 	rosettatypes "github.com/coinbase/rosetta-sdk-go/types"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -172,7 +172,7 @@ func (s *ConverterTestSuite) TestOpsAndSigners() {
 		ops, signers, err := s.c.ToRosetta().OpsAndSigners(txBytes)
 		s.Require().NoError(err)
 
-		signerAddrs := sdkTx.GetSigners()
+		signerAddrs, err := sdkTx.GetSigners()
 		s.Require().NoError(err)
 		s.Require().Equal(len(ops), len(sdkTx.GetMsgs())*len(signerAddrs), "operation number mismatch")
 
@@ -223,7 +223,7 @@ func (s *ConverterTestSuite) TestBeginEndBlockAndHashToTxType() {
 func (s *ConverterTestSuite) TestSigningComponents() {
 	s.Run("invalid metadata coins", func() {
 		_, _, err := s.c.ToRosetta().SigningComponents(nil, &rosetta.ConstructionMetadata{GasPrice: "invalid"}, nil)
-		s.Require().ErrorIs(err, crgerrs.ErrBadArgument)
+		s.Require().ErrorIs(err, crgerrs.ErrConverter)
 	})
 
 	s.Run("length signers data does not match signers", func() {
