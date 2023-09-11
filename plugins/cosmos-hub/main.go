@@ -3,9 +3,9 @@ package main
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcTypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 
-	ibcLightClient "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibcClient "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
@@ -20,8 +20,8 @@ func InitZone() {
 }
 
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	ibcclienttypes.RegisterInterfaces(registry)
-	ibcLightClient.RegisterInterfaces(registry)
+	ibcTypes.RegisterInterfaces(registry)
+	ibcClient.RegisterInterfaces(registry)
 	sdk.RegisterInterfaces(registry)
 	txtypes.RegisterInterfaces(registry)
 	cryptocodec.RegisterInterfaces(registry)
