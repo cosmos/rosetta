@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -21,8 +22,8 @@ import (
 	"github.com/cometbft/cometbft/rpc/client/http"
 	"google.golang.org/grpc"
 
-	crgerrs "github.com/cosmos/rosetta/lib/errors"
-	crgtypes "github.com/cosmos/rosetta/lib/types"
+	crgerrs "cosmossdk.io/tools/rosetta/lib/errors"
+	crgtypes "cosmossdk.io/tools/rosetta/lib/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
@@ -70,12 +71,14 @@ func NewClient(cfg *Config) (*Client, error) {
 
 	var supportedOperations []string
 	for _, ii := range cfg.InterfaceRegistry.ListImplementations(sdk.MsgInterfaceProtoName) {
-		_, err := cfg.InterfaceRegistry.Resolve(ii)
+		resolvedMsg, err := cfg.InterfaceRegistry.Resolve(ii)
 		if err != nil {
 			continue
 		}
 
-		supportedOperations = append(supportedOperations, ii)
+		if _, ok := resolvedMsg.(sdk.Msg); ok {
+			supportedOperations = append(supportedOperations, ii)
+		}
 	}
 
 	supportedOperations = append(
@@ -102,12 +105,12 @@ func NewClient(cfg *Config) (*Client, error) {
 func (c *Client) Bootstrap() error {
 	grpcConn, err := grpc.Dial(c.config.GRPCEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("dialing grpc endpoint %s", err.Error()))
+		return err
 	}
 
 	tmRPC, err := http.New(c.config.TendermintRPC, tmWebsocketPath)
 	if err != nil {
-		return crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting rpc path %s", err.Error()))
+		return err
 	}
 
 	authClient := auth.NewQueryClient(grpcConn)
@@ -126,17 +129,17 @@ func (c *Client) Ready() error {
 	defer cancel()
 	_, err := c.tmRPC.Health(ctx)
 	if err != nil {
-		return crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting grpc health %s", err.Error()))
+		return err
 	}
 
 	_, err = c.tmRPC.Status(ctx)
 	if err != nil {
-		return crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting grpc status %s", err.Error()))
+		return err
 	}
 
 	_, err = c.bank.TotalSupply(ctx, &bank.QueryTotalSupplyRequest{})
 	if err != nil {
-		return crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting bank total supply %s", err.Error()))
+		return err
 	}
 	return nil
 }
@@ -149,11 +152,11 @@ func (c *Client) GenesisBlock(ctx context.Context) (crgtypes.BlockResponse, erro
 func (c *Client) InitialHeightBlock(ctx context.Context) (crgtypes.BlockResponse, error) {
 	genesisChunk, err := c.tmRPC.GenesisChunked(ctx, 0)
 	if err != nil {
-		return crgtypes.BlockResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting bank total supply %s", err.Error()))
+		return crgtypes.BlockResponse{}, err
 	}
 	heightNum, err := extractInitialHeightFromGenesisChunk(genesisChunk.Data)
 	if err != nil {
-		return crgtypes.BlockResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting height from genesis chunk %s", err.Error()))
+		return crgtypes.BlockResponse{}, err
 	}
 	return c.BlockByHeight(ctx, &heightNum)
 }
@@ -161,7 +164,7 @@ func (c *Client) InitialHeightBlock(ctx context.Context) (crgtypes.BlockResponse
 func (c *Client) OldestBlock(ctx context.Context) (crgtypes.BlockResponse, error) {
 	status, err := c.tmRPC.Status(ctx)
 	if err != nil {
-		return crgtypes.BlockResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting oldest block %s", err.Error()))
+		return crgtypes.BlockResponse{}, err
 	}
 	return c.BlockByHeight(ctx, &status.SyncInfo.EarliestBlockHeight)
 }
@@ -181,7 +184,7 @@ func (c *Client) accountInfo(ctx context.Context, addr string, height *int64) (*
 
 	signerData, err := c.converter.ToRosetta().SignerData(accountInfo.Account)
 	if err != nil {
-		return nil, crgerrs.FromGRPCToRosettaError(err)
+		return nil, err
 	}
 	return signerData, nil
 }
@@ -201,7 +204,7 @@ func (c *Client) Balances(ctx context.Context, addr string, height *int64) ([]*r
 
 	availableCoins, err := c.coins(ctx)
 	if err != nil {
-		return nil, crgerrs.FromGRPCToRosettaError(err)
+		return nil, err
 	}
 
 	return c.converter.ToRosetta().Amounts(balance.Balances, availableCoins), nil
@@ -210,12 +213,12 @@ func (c *Client) Balances(ctx context.Context, addr string, height *int64) ([]*r
 func (c *Client) BlockByHash(ctx context.Context, hash string) (crgtypes.BlockResponse, error) {
 	bHash, err := hex.DecodeString(hash)
 	if err != nil {
-		return crgtypes.BlockResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("invalid block hash %s", err.Error()))
+		return crgtypes.BlockResponse{}, fmt.Errorf("invalid block hash: %s", err)
 	}
 
 	block, err := c.tmRPC.BlockByHash(ctx, bHash)
 	if err != nil {
-		return crgtypes.BlockResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting block by hash %s", err.Error()))
+		return crgtypes.BlockResponse{}, crgerrs.WrapError(crgerrs.ErrBadGateway, err.Error())
 	}
 
 	return c.converter.ToRosetta().BlockResponse(block), nil
@@ -224,7 +227,7 @@ func (c *Client) BlockByHash(ctx context.Context, hash string) (crgtypes.BlockRe
 func (c *Client) BlockByHeight(ctx context.Context, height *int64) (crgtypes.BlockResponse, error) {
 	block, err := c.tmRPC.Block(ctx, height)
 	if err != nil {
-		return crgtypes.BlockResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting block by height %s", err.Error()))
+		return crgtypes.BlockResponse{}, crgerrs.WrapError(crgerrs.ErrInternal, err.Error())
 	}
 
 	return c.converter.ToRosetta().BlockResponse(block), nil
@@ -234,7 +237,7 @@ func (c *Client) BlockTransactionsByHash(ctx context.Context, hash string) (crgt
 	// TODO(fdymylja): use a faster path, by searching the block by hash, instead of doing a double query operation
 	blockResp, err := c.BlockByHash(ctx, hash)
 	if err != nil {
-		return crgtypes.BlockTransactionsResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting block transactions by hash %s", err.Error()))
+		return crgtypes.BlockTransactionsResponse{}, err
 	}
 
 	return c.blockTxs(ctx, &blockResp.Block.Index)
@@ -243,18 +246,18 @@ func (c *Client) BlockTransactionsByHash(ctx context.Context, hash string) (crgt
 func (c *Client) BlockTransactionsByHeight(ctx context.Context, height *int64) (crgtypes.BlockTransactionsResponse, error) {
 	blockTxResp, err := c.blockTxs(ctx, height)
 	if err != nil {
-		return crgtypes.BlockTransactionsResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting block transactions by height %s", err.Error()))
+		return crgtypes.BlockTransactionsResponse{}, err
 	}
 	return blockTxResp, nil
 }
 
-// Coins f etches the existing coins in the application
+// Coins fetches the existing coins in the application
 func (c *Client) coins(ctx context.Context) (sdk.Coins, error) {
 	var result sdk.Coins
 
 	supply, err := c.bank.TotalSupply(ctx, &bank.QueryTotalSupplyRequest{})
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting coins supply %s", err.Error()))
+		return nil, crgerrs.FromGRPCToRosettaError(err)
 	}
 
 	pages := supply.GetPagination().GetTotal()
@@ -262,13 +265,13 @@ func (c *Client) coins(ctx context.Context) (sdk.Coins, error) {
 		// get next key
 		page := supply.GetPagination()
 		if page == nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting supply pagination %s", err.Error()))
+			return nil, crgerrs.WrapError(crgerrs.ErrCodec, "error pagination")
 		}
 		nextKey := page.GetNextKey()
 
 		supply, err = c.bank.TotalSupply(ctx, &bank.QueryTotalSupplyRequest{Pagination: &query.PageRequest{Key: nextKey}})
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting supply from bank %s", err.Error()))
+			return nil, crgerrs.FromGRPCToRosettaError(err)
 		}
 
 		result = append(result[:0], supply.Supply[:]...)
@@ -282,9 +285,9 @@ func (c *Client) TxOperationsAndSignersAccountIdentifiers(signed bool, txBytes [
 	case false:
 		rosTx, err := c.converter.ToRosetta().Tx(txBytes, nil)
 		if err != nil {
-			return nil, nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting rosseta Tx format %s", err.Error()))
+			return nil, nil, err
 		}
-		return rosTx.Operations, nil, nil
+		return rosTx.Operations, nil, err
 	default:
 		ops, signers, err = c.converter.ToRosetta().OpsAndSigners(txBytes)
 		return
@@ -297,7 +300,7 @@ func (c *Client) TxOperationsAndSignersAccountIdentifiers(signed bool, txBytes [
 func (c *Client) GetTx(ctx context.Context, hash string) (*rosettatypes.Transaction, error) {
 	hashBytes, err := hex.DecodeString(hash)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("bad tx hash %s", err.Error()))
+		return nil, crgerrs.WrapError(crgerrs.ErrCodec, fmt.Sprintf("bad tx hash: %s", err))
 	}
 
 	// get tx type and hash
@@ -310,13 +313,13 @@ func (c *Client) GetTx(ctx context.Context, hash string) (*rosettatypes.Transact
 		// get block height by hash
 		block, err := c.tmRPC.BlockByHash(ctx, hashBytes)
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting block by hash %s", err.Error()))
+			return nil, crgerrs.WrapError(crgerrs.ErrUnknown, err.Error())
 		}
 
 		// get block txs
 		fullBlock, err := c.blockTxs(ctx, &block.Block.Height)
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting block tx %s", err.Error()))
+			return nil, err
 		}
 
 		return fullBlock.Transactions[0], nil
@@ -324,7 +327,7 @@ func (c *Client) GetTx(ctx context.Context, hash string) (*rosettatypes.Transact
 	case DeliverTxTx:
 		rawTx, err := c.tmRPC.Tx(ctx, hashBytes, true)
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting tx %s", err.Error()))
+			return nil, crgerrs.WrapError(crgerrs.ErrUnknown, err.Error())
 		}
 		return c.converter.ToRosetta().Tx(rawTx.Tx, &rawTx.TxResult)
 	// handle end block hash
@@ -332,13 +335,13 @@ func (c *Client) GetTx(ctx context.Context, hash string) (*rosettatypes.Transact
 		// get block height by hash
 		block, err := c.tmRPC.BlockByHash(ctx, hashBytes)
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting block by hash %s", err.Error()))
+			return nil, crgerrs.WrapError(crgerrs.ErrUnknown, err.Error())
 		}
 
 		// get block txs
 		fullBlock, err := c.blockTxs(ctx, &block.Block.Height)
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting block by hash %s", err.Error()))
+			return nil, err
 		}
 
 		// get last tx
@@ -353,12 +356,12 @@ func (c *Client) GetTx(ctx context.Context, hash string) (*rosettatypes.Transact
 func (c *Client) GetUnconfirmedTx(ctx context.Context, hash string) (*rosettatypes.Transaction, error) {
 	res, err := c.tmRPC.UnconfirmedTxs(ctx, nil)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrNotFound, fmt.Sprintf("unconfirmed tx not found %s", err.Error()))
+		return nil, crgerrs.WrapError(crgerrs.ErrNotFound, "unconfirmed tx not found")
 	}
 
 	hashAsBytes, err := hex.DecodeString(hash)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrCodec, fmt.Sprintf("invalid hash %s", err.Error()))
+		return nil, crgerrs.WrapError(crgerrs.ErrInterpreting, "invalid hash")
 	}
 
 	// assert that correct tx length is provided
@@ -386,7 +389,7 @@ func (c *Client) GetUnconfirmedTx(ctx context.Context, hash string) (*rosettatyp
 func (c *Client) Mempool(ctx context.Context) ([]*rosettatypes.TransactionIdentifier, error) {
 	txs, err := c.tmRPC.UnconfirmedTxs(ctx, nil)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting unconfirmed tx %s", err.Error()))
+		return nil, err
 	}
 
 	return c.converter.ToRosetta().TxIdentifiers(txs.Txs), nil
@@ -396,7 +399,7 @@ func (c *Client) Mempool(ctx context.Context) ([]*rosettatypes.TransactionIdenti
 func (c *Client) Peers(ctx context.Context) ([]*rosettatypes.Peer, error) {
 	netInfo, err := c.tmRPC.NetInfo(ctx)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, "getting network information "+err.Error())
+		return nil, crgerrs.WrapError(crgerrs.ErrUnknown, err.Error())
 	}
 	return c.converter.ToRosetta().Peers(netInfo.Peers), nil
 }
@@ -404,7 +407,7 @@ func (c *Client) Peers(ctx context.Context) ([]*rosettatypes.Peer, error) {
 func (c *Client) Status(ctx context.Context) (*rosettatypes.SyncStatus, error) {
 	status, err := c.tmRPC.Status(ctx)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting network information %s", err.Error()))
+		return nil, crgerrs.WrapError(crgerrs.ErrUnknown, err.Error())
 	}
 	return c.converter.ToRosetta().SyncStatus(status), err
 }
@@ -413,7 +416,7 @@ func (c *Client) PostTx(txBytes []byte) (*rosettatypes.TransactionIdentifier, ma
 	// sync ensures it will go through checkTx
 	res, err := c.tmRPC.BroadcastTxSync(context.Background(), txBytes)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting BroadcastTxSync %s", err.Error()))
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrUnknown, err.Error())
 	}
 	// check if tx was broadcast successfully
 	if res.Code != abcitypes.CodeTypeOK {
@@ -436,14 +439,14 @@ func (c *Client) PostTx(txBytes []byte) (*rosettatypes.TransactionIdentifier, ma
 // ConstructionMetadataFromOptions builds the metadata given the options
 func (c *Client) ConstructionMetadataFromOptions(ctx context.Context, options map[string]interface{}) (meta map[string]interface{}, err error) {
 	if len(options) == 0 {
-		return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, "options length is 0")
+		return nil, crgerrs.ErrBadArgument
 	}
 
 	constructionOptions := new(PreprocessOperationsOptionsResponse)
 
 	err = constructionOptions.FromMetadata(options)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, fmt.Sprintf("getting metadata %s", err.Error()))
+		return nil, err
 	}
 
 	// if default fees suggestion is enabled and gas limit or price is unset, use default
@@ -460,7 +463,7 @@ func (c *Client) ConstructionMetadataFromOptions(ctx context.Context, options ma
 	if constructionOptions.GasLimit > 0 && constructionOptions.GasPrice != "" {
 		gasPrice, err := sdk.ParseDecCoin(constructionOptions.GasPrice)
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("parsing gas price %s", err.Error()))
+			return nil, err
 		}
 		if !gasPrice.IsPositive() {
 			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, "gas price must be positive")
@@ -472,7 +475,7 @@ func (c *Client) ConstructionMetadataFromOptions(ctx context.Context, options ma
 	for i, signer := range constructionOptions.ExpectedSigners {
 		accountInfo, err := c.accountInfo(ctx, signer, nil)
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting account info %s", err.Error()))
+			return nil, err
 		}
 
 		signersData[i] = accountInfo
@@ -480,7 +483,7 @@ func (c *Client) ConstructionMetadataFromOptions(ctx context.Context, options ma
 
 	status, err := c.tmRPC.Status(ctx)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting rpc status %s", err.Error()))
+		return nil, err
 	}
 
 	metadataResp := ConstructionMetadata{
@@ -498,23 +501,24 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 	// get block info
 	blockInfo, err := c.tmRPC.Block(ctx, height)
 	if err != nil {
-		return crgtypes.BlockTransactionsResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting rpc block %s", err.Error()))
+		return crgtypes.BlockTransactionsResponse{}, err
 	}
 	// get block events
 	blockResults, err := c.tmRPC.BlockResults(ctx, height)
 	if err != nil {
-		return crgtypes.BlockTransactionsResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting rpc block results %s", err.Error()))
+		return crgtypes.BlockTransactionsResponse{}, err
 	}
 
 	if len(blockResults.TxsResults) != len(blockInfo.Block.Txs) {
-		return crgtypes.BlockTransactionsResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, "block results transactions do now match block transactions")
+		// wtf?
+		panic("block results transactions do now match block transactions")
 	}
 	// process begin and end block txs
 	beginBlockTx := &rosettatypes.Transaction{
 		TransactionIdentifier: &rosettatypes.TransactionIdentifier{Hash: c.converter.ToRosetta().BeginBlockTxHash(blockInfo.BlockID.Hash)},
 		Operations: AddOperationIndexes(
 			nil,
-			c.converter.ToRosetta().BalanceOps(StatusTxSuccess, blockResults.FinalizeBlockEvents),
+			c.converter.ToRosetta().BalanceOps(StatusTxSuccess, blockResults.BeginBlockEvents),
 		),
 	}
 
@@ -522,7 +526,7 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 		TransactionIdentifier: &rosettatypes.TransactionIdentifier{Hash: c.converter.ToRosetta().EndBlockTxHash(blockInfo.BlockID.Hash)},
 		Operations: AddOperationIndexes(
 			nil,
-			c.converter.ToRosetta().BalanceOps(StatusTxSuccess, blockResults.FinalizeBlockEvents),
+			c.converter.ToRosetta().BalanceOps(StatusTxSuccess, blockResults.EndBlockEvents),
 		),
 	}
 
@@ -531,7 +535,7 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 	for i, tx := range blockInfo.Block.Txs {
 		rosTx, err := c.converter.ToRosetta().Tx(tx, blockResults.TxsResults[i])
 		if err != nil {
-			return crgtypes.BlockTransactionsResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting rosetta tx %s", err.Error()))
+			return crgtypes.BlockTransactionsResponse{}, err
 		}
 		deliverTx[i] = rosTx
 	}
@@ -552,12 +556,12 @@ var initialHeightRE = regexp.MustCompile(`"initial_height":"(\d+)"`)
 func extractInitialHeightFromGenesisChunk(genesisChunk string) (int64, error) {
 	firstChunk, err := base64.StdEncoding.DecodeString(genesisChunk)
 	if err != nil {
-		return 0, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting first chunk %s", err.Error()))
+		return 0, err
 	}
 
 	matches := initialHeightRE.FindStringSubmatch(string(firstChunk))
 	if len(matches) != 2 {
-		return 0, crgerrs.WrapError(crgerrs.ErrOnlineClient, "failed to fetch initial_height")
+		return 0, errors.New("failed to fetch initial_height")
 	}
 
 	heightStr := matches[1]

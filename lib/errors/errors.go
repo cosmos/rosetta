@@ -160,14 +160,4 @@ var (
 	ErrNotImplemented = RegisterError(14, "not implemented", false, "returned when querying an endpoint which is not implemented")
 	// ErrUnsupportedCurve is returned when the curve specified is not supported
 	ErrUnsupportedCurve = RegisterError(15, "unsupported curve, expected secp256k1", false, "returned when using an unsupported crypto curve")
-	// ErrPlugin is returned when using a plugin
-	ErrPlugin = RegisterError(16, "error on plugin", false, "returned when using a plugin")
-	// ErrClient is returned when there is an error with the client
-	ErrClient = RegisterError(17, "error on client operation", false, "returned when there is an error with the client")
-	// ErrConverter is returned when there is an error with the converter
-	ErrConverter = RegisterError(18, "error on converter operation", false, "returned when there is an error with the client")
-	// ErrOnlineClient is returned when there is an error with the online client
-	ErrOnlineClient = RegisterError(171, "error on online client operation", false, "returned when there is an error with the client")
-	// ErrConfig is returned when there is an error on the config
-	ErrConfig = RegisterError(19, "error on config operation", false, "returned when there is an error on the config")
 )

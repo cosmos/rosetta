@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/tools/rosetta/lib/errors"
 	"github.com/coinbase/rosetta-sdk-go/types"
-	"github.com/cosmos/rosetta/lib/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

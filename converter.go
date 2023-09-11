@@ -2,13 +2,10 @@ package rosetta
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"reflect"
-
-	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 
 	rosettatypes "github.com/coinbase/rosetta-sdk-go/types"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -18,8 +15,8 @@ import (
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
 	sdkmath "cosmossdk.io/math"
-	crgerrs "github.com/cosmos/rosetta/lib/errors"
-	crgtypes "github.com/cosmos/rosetta/lib/types"
+	crgerrs "cosmossdk.io/tools/rosetta/lib/errors"
+	crgtypes "cosmossdk.io/tools/rosetta/lib/types"
 
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -30,6 +27,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // Converter is a utility that can be used to convert
@@ -72,7 +71,7 @@ type ToRosettaConverter interface {
 	// SigningComponents returns rosetta's components required to build a signable transaction
 	SigningComponents(tx authsigning.Tx, metadata *ConstructionMetadata, rosPubKeys []*rosettatypes.PublicKey) (txBytes []byte, payloadsToSign []*rosettatypes.SigningPayload, err error)
 	// Tx converts a CometBFT transaction and tx result if provided to a rosetta tx
-	Tx(rawTx cmttypes.Tx, txResult *abci.ExecTxResult) (*rosettatypes.Transaction, error)
+	Tx(rawTx cmttypes.Tx, txResult *abci.ResponseDeliverTx) (*rosettatypes.Transaction, error)
 	// TxIdentifiers converts a CometBFT tx to transaction identifiers
 	TxIdentifiers(txs []cmttypes.Tx) []*rosettatypes.TransactionIdentifier
 	// BalanceOps converts events to balance operations
@@ -118,15 +117,9 @@ func NewConverter(cdc *codec.ProtoCodec, ir codectypes.InterfaceRegistry, cfg sd
 		txDecode:        cfg.TxDecoder(),
 		txEncode:        cfg.TxEncoder(),
 		bytesToSign: func(tx authsigning.Tx, signerData authsigning.SignerData) (b []byte, err error) {
-			parsedSignerData := parseSignerData(signerData)
-			txData, err := parseTxData(tx, parsedSignerData)
+			bytesToSign, err := cfg.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON, signerData, tx)
 			if err != nil {
-				return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting tx data %s", err.Error()))
-			}
-
-			bytesToSign, err := cfg.SignModeHandler().GetSignBytes(context.TODO(), signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT), parsedSignerData, *txData)
-			if err != nil {
-				return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting bytes to sign %s", err.Error()))
+				return nil, err
 			}
 
 			return crypto.Sha256(bytesToSign), nil
@@ -153,9 +146,14 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 	for i := 0; i < len(ops); i++ {
 		op := ops[i]
 
-		msg, err := c.ir.Resolve(op.Type)
+		protoMessage, err := c.ir.Resolve(op.Type)
 		if err != nil {
 			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, "operation not found: "+op.Type)
+		}
+
+		msg, ok := protoMessage.(sdk.Msg)
+		if !ok {
+			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, "operation is not a valid supported sdk.Msg: "+op.Type)
 		}
 
 		err = c.Msg(op.Metadata, msg)
@@ -163,12 +161,15 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 			return nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 		}
 
-		legacyMsg, ok := msg.(sdk.LegacyMsg)
-		if !ok {
-			return nil, crgerrs.WrapError(crgerrs.ErrCodec, "Failed asserting LegacyMsg type")
+		// verify message correctness
+		if err = msg.ValidateBasic(); err != nil {
+			return nil, crgerrs.WrapError(
+				crgerrs.ErrBadArgument,
+				fmt.Sprintf("validation of operation at index %d failed: %s", op.OperationIdentifier.Index, err),
+			)
 		}
 
-		signers := legacyMsg.GetSigners()
+		signers := msg.GetSigners()
 		// check if there are enough signers
 		if len(signers) == 0 {
 			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, fmt.Sprintf("operation at index %d got no signers", op.OperationIdentifier.Index))
@@ -216,7 +217,7 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 func (c converter) Msg(meta map[string]interface{}, msg sdk.Msg) error {
 	metaBytes, err := json.Marshal(meta)
 	if err != nil {
-		return crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while marshaling meta to json %s", err.Error()))
+		return err
 	}
 	return c.cdc.UnmarshalJSON(metaBytes, msg)
 }
@@ -243,16 +244,11 @@ func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, e
 
 	meta, err := c.Meta(msg)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting meta from message %s", err.Error()))
+		return nil, err
 	}
 
-	legacyMsg, ok := msg.(sdk.LegacyMsg)
-	if !ok {
-		return nil, crgerrs.WrapError(crgerrs.ErrCodec, "Failed asserting LegacyMsg type")
-	}
-
-	ops := make([]*rosettatypes.Operation, len(legacyMsg.GetSigners()))
-	for i, signer := range legacyMsg.GetSigners() {
+	ops := make([]*rosettatypes.Operation, len(msg.GetSigners()))
+	for i, signer := range msg.GetSigners() {
 		op := &rosettatypes.Operation{
 			Type:     opName,
 			Status:   &status,
@@ -267,7 +263,7 @@ func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, e
 }
 
 // Tx converts a CometBFT raw transaction and its result (if provided) to a rosetta transaction
-func (c converter) Tx(rawTx cmttypes.Tx, txResult *abci.ExecTxResult) (*rosettatypes.Transaction, error) {
+func (c converter) Tx(rawTx cmttypes.Tx, txResult *abci.ResponseDeliverTx) (*rosettatypes.Transaction, error) {
 	// decode tx
 	tx, err := c.txDecode(rawTx)
 	if err != nil {
@@ -296,7 +292,7 @@ func (c converter) Tx(rawTx cmttypes.Tx, txResult *abci.ExecTxResult) (*rosettat
 	for _, msg := range msgs {
 		ops, err := c.Ops(status, msg)
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting operations from status and msg %s", err.Error()))
+			return nil, err
 		}
 		rawTxOps = append(rawTxOps, ops...)
 	}
@@ -592,22 +588,17 @@ func (c converter) OpsAndSigners(txBytes []byte) (ops []*rosettatypes.Operation,
 	// get the signers
 	sdkTx, err := c.txDecode(txBytes)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting tx encoder %s", err.Error()))
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 	}
 
 	txBuilder, err := c.txBuilderFromTx(sdkTx)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting tx builder %s", err.Error()))
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 	}
 
-	txSigners, err := txBuilder.GetTx().GetSigners()
-	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting tx signers %s", err.Error()))
-	}
-
-	for _, signer := range txSigners {
+	for _, signer := range txBuilder.GetTx().GetSigners() {
 		signers = append(signers, &rosettatypes.AccountIdentifier{
-			Address: string(signer),
+			Address: signer.String(),
 		})
 	}
 
@@ -617,17 +608,17 @@ func (c converter) OpsAndSigners(txBytes []byte) (ops []*rosettatypes.Operation,
 func (c converter) SignedTx(txBytes []byte, signatures []*rosettatypes.Signature) (signedTxBytes []byte, err error) {
 	rawTx, err := c.txDecode(txBytes)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while decoding tx from bytes %s", err.Error()))
+		return nil, err
 	}
 
 	txBuilder, err := c.txBuilderFromTx(rawTx)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting tx bytes from tx %s", err.Error()))
+		return nil, err
 	}
 
 	notSignedSigs, err := txBuilder.GetTx().GetSignaturesV2() //
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting signatures from tx %s", err.Error()))
+		return nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 	}
 
 	if len(notSignedSigs) != len(signatures) {
@@ -650,12 +641,12 @@ func (c converter) SignedTx(txBytes []byte, signatures []*rosettatypes.Signature
 	}
 
 	if err = txBuilder.SetSignatures(signedSigs...); err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while setting signatures %s", err.Error()))
+		return nil, err
 	}
 
 	txBytes, err = c.txEncode(txBuilder.GetTx())
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting bytes from tx %s", err.Error()))
+		return nil, err
 	}
 
 	return txBytes, nil
@@ -684,14 +675,10 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 	// verify metadata correctness
 	feeAmount, err := sdk.ParseCoinsNormalized(metadata.GasPrice)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting signers v2 from tx %s", err.Error()))
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrBadArgument, err.Error())
 	}
 
-	signers, err := tx.GetSignaturesV2()
-	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting signers v2 from tx %s", err.Error()))
-	}
-
+	signers := tx.GetSigners()
 	// assert the signers data provided in options are the same as the expected signing accounts
 	// and that the number of rosetta provided public keys equals the one of the signers
 	if len(metadata.SignersData) != len(signers) || len(signers) != len(rosPubKeys) {
@@ -701,7 +688,7 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 	// add transaction metadata
 	builder, err := c.txBuilderFromTx(tx)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("getting tx builder %s", err.Error()))
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 	}
 	builder.SetFeeAmount(feeAmount)
 	builder.SetGasLimit(metadata.GasLimit)
@@ -717,18 +704,18 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 		// by checking if the signer at index i matches the pubkey at index
 		pubKey, err := c.ToSDK().PubKey(rosPubKeys[0])
 		if err != nil {
-			return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while setting signatures %s", err.Error()))
+			return nil, nil, err
 		}
-		if !bytes.Equal(pubKey.Address().Bytes(), signer.PubKey.Address()) {
+		if !bytes.Equal(pubKey.Address().Bytes(), signer.Bytes()) {
 			return nil, nil, crgerrs.WrapError(
 				crgerrs.ErrBadArgument,
-				fmt.Sprintf("public key at index %d does not match the expected transaction signer: %X <-> %X", i, rosPubKeys[i].Bytes, signer),
+				fmt.Sprintf("public key at index %d does not match the expected transaction signer: %X <-> %X", i, rosPubKeys[i].Bytes, signer.Bytes()),
 			)
 		}
 
 		// set the signer data
 		signerData := authsigning.SignerData{
-			Address:       string(signer.PubKey.Address()),
+			Address:       signer.String(),
 			ChainID:       metadata.ChainID,
 			AccountNumber: metadata.SignersData[i].AccountNumber,
 			Sequence:      metadata.SignersData[i].Sequence,
@@ -742,10 +729,8 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 		}
 
 		// set payload
-		signerAddress := sdk.AccAddress(signer.PubKey.Address()).String()
-
 		payloadsToSign[i] = &rosettatypes.SigningPayload{
-			AccountIdentifier: &rosettatypes.AccountIdentifier{Address: signerAddress},
+			AccountIdentifier: &rosettatypes.AccountIdentifier{Address: signer.String()},
 			Bytes:             signBytes,
 			SignatureType:     rosettatypes.Ecdsa,
 		}
@@ -764,13 +749,13 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 	// information of each account in a stateless way
 	err = builder.SetSignatures(partialSignatures...)
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while setting signatures %s", err.Error()))
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 	}
 
 	// finally encode the tx
 	txBytes, err = c.txEncode(builder.GetTx())
 	if err != nil {
-		return nil, nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while encoding tx %s", err.Error()))
+		return nil, nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 	}
 
 	return txBytes, payloadsToSign, nil
@@ -778,10 +763,10 @@ func (c converter) SigningComponents(tx authsigning.Tx, metadata *ConstructionMe
 
 // SignerData converts the given any account to signer data
 func (c converter) SignerData(anyAccount *codectypes.Any) (*SignerData, error) {
-	var acc sdkclient.Account
+	var acc auth.AccountI
 	err := c.ir.UnpackAny(anyAccount, &acc)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while unpacking an account %s", err.Error()))
+		return nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 	}
 
 	return &SignerData{

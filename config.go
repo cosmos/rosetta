@@ -5,12 +5,10 @@ import (
 	"strings"
 	"time"
 
-	crgerrs "github.com/cosmos/rosetta/lib/errors"
-
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/spf13/pflag"
 
-	crg "github.com/cosmos/rosetta/lib/server"
+	crg "cosmossdk.io/tools/rosetta/lib/server"
 
 	clientflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -111,7 +109,7 @@ func (c *Config) NetworkIdentifier() *types.NetworkIdentifier {
 // its defaults in case they were not provided
 func (c *Config) validate() error {
 	if (c.Codec == nil) != (c.InterfaceRegistry == nil) {
-		return crgerrs.WrapError(crgerrs.ErrConfig, "codec and interface registry must be both different from nil or nil")
+		return fmt.Errorf("codec and interface registry must be both different from nil or nil")
 	}
 
 	if c.Addr == "" {
@@ -125,10 +123,10 @@ func (c *Config) validate() error {
 	}
 	// these are must
 	if c.Network == "" {
-		return crgerrs.WrapError(crgerrs.ErrConfig, "network not provided")
+		return fmt.Errorf("network not provided")
 	}
 	if c.GasToSuggest <= 0 {
-		return crgerrs.WrapError(crgerrs.ErrConfig, "gas to suggest must be positive")
+		return fmt.Errorf("gas to suggest must be positive")
 	}
 	if c.EnableFeeSuggestion {
 		found := false
@@ -139,16 +137,16 @@ func (c *Config) validate() error {
 			}
 		}
 		if !found {
-			return crgerrs.WrapError(crgerrs.ErrConfig, "default suggest denom is not found in prices to suggest")
+			return fmt.Errorf("default suggest denom is not found in prices to suggest")
 		}
 	}
 
 	// these are optional but it must be online
 	if c.GRPCEndpoint == "" {
-		return crgerrs.WrapError(crgerrs.ErrConfig, "grpc endpoint not provided")
+		return fmt.Errorf("grpc endpoint not provided")
 	}
 	if c.TendermintRPC == "" {
-		return crgerrs.WrapError(crgerrs.ErrConfig, "cometbft rpc not provided")
+		return fmt.Errorf("cometbft rpc not provided")
 	}
 	if !strings.HasPrefix(c.TendermintRPC, "tcp://") {
 		c.TendermintRPC = fmt.Sprintf("tcp://%s", c.TendermintRPC)
@@ -167,54 +165,54 @@ func (c *Config) WithCodec(ir codectypes.InterfaceRegistry, cdc *codec.ProtoCode
 func FromFlags(flags *pflag.FlagSet) (*Config, error) {
 	blockchain, err := flags.GetString(FlagBlockchain)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting blockchain flag %s", err.Error()))
+		return nil, err
 	}
 	network, err := flags.GetString(FlagNetwork)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting network flag %s", err.Error()))
+		return nil, err
 	}
 	tendermintRPC, err := flags.GetString(FlagTendermintEndpoint)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting tendermintRPC flag %s", err.Error()))
+		return nil, err
 	}
 	gRPCEndpoint, err := flags.GetString(FlagGRPCEndpoint)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting gRPCEndpoint flag %s", err.Error()))
+		return nil, err
 	}
 	addr, err := flags.GetString(FlagAddr)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting addr flag %s", err.Error()))
+		return nil, err
 	}
 	retries, err := flags.GetInt(FlagRetries)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting retries flag %s", err.Error()))
+		return nil, err
 	}
 	offline, err := flags.GetBool(FlagOffline)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting offline flag %s", err.Error()))
+		return nil, err
 	}
 	enableDefaultFeeSuggestion, err := flags.GetBool(FlagEnableFeeSuggestion)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting enableDefaultFeeSuggestion flag %s", err.Error()))
+		return nil, err
 	}
 	gasToSuggest, err := flags.GetInt(FlagGasToSuggest)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting gasToSuggest flag %s", err.Error()))
+		return nil, err
 	}
 	denomToSuggest, err := flags.GetString(FlagDenomToSuggest)
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting denomToSuggest flag %s", err.Error()))
+		return nil, err
 	}
 
 	var prices sdk.DecCoins
 	if enableDefaultFeeSuggestion {
 		pricesToSuggest, err := flags.GetString(FlagPricesToSuggest)
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting pricesToSuggest flag %s", err.Error()))
+			return nil, err
 		}
 		prices, err = sdk.ParseDecCoins(pricesToSuggest)
 		if err != nil {
-			return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while parcing prices from the sdk %s", err.Error()))
+			return nil, err
 		}
 	}
 
@@ -233,7 +231,7 @@ func FromFlags(flags *pflag.FlagSet) (*Config, error) {
 	}
 	err = conf.validate()
 	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while validating configs %s", err.Error()))
+		return nil, err
 	}
 	return conf, nil
 }
@@ -241,11 +239,11 @@ func FromFlags(flags *pflag.FlagSet) (*Config, error) {
 func ServerFromConfig(conf *Config) (crg.Server, error) {
 	err := conf.validate()
 	if err != nil {
-		return crg.Server{}, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while validating configs %s", err.Error()))
+		return crg.Server{}, err
 	}
 	client, err := NewClient(conf)
 	if err != nil {
-		return crg.Server{}, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while creating a new client from configs %s", err.Error()))
+		return crg.Server{}, err
 	}
 	return crg.NewServer(
 		crg.Settings{

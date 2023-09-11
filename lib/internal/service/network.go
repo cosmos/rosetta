@@ -3,19 +3,19 @@ package service
 import (
 	"context"
 
-	coinbase "github.com/coinbase/rosetta-sdk-go/types"
-	"github.com/cosmos/rosetta/lib/errors"
+	"cosmossdk.io/tools/rosetta/lib/errors"
+	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-func (on OnlineNetwork) NetworkList(_ context.Context, _ *coinbase.MetadataRequest) (*coinbase.NetworkListResponse, *coinbase.Error) {
-	return &coinbase.NetworkListResponse{NetworkIdentifiers: []*coinbase.NetworkIdentifier{on.network}}, nil
+func (on OnlineNetwork) NetworkList(_ context.Context, _ *types.MetadataRequest) (*types.NetworkListResponse, *types.Error) {
+	return &types.NetworkListResponse{NetworkIdentifiers: []*types.NetworkIdentifier{on.network}}, nil
 }
 
-func (on OnlineNetwork) NetworkOptions(_ context.Context, _ *coinbase.NetworkRequest) (*coinbase.NetworkOptionsResponse, *coinbase.Error) {
+func (on OnlineNetwork) NetworkOptions(_ context.Context, _ *types.NetworkRequest) (*types.NetworkOptionsResponse, *types.Error) {
 	return on.networkOptions, nil
 }
 
-func (on OnlineNetwork) NetworkStatus(ctx context.Context, _ *coinbase.NetworkRequest) (*coinbase.NetworkStatusResponse, *coinbase.Error) {
+func (on OnlineNetwork) NetworkStatus(ctx context.Context, _ *types.NetworkRequest) (*types.NetworkStatusResponse, *types.Error) {
 	syncStatus, err := on.client.Status(ctx)
 	if err != nil {
 		return nil, errors.ToRosetta(err)
@@ -44,7 +44,7 @@ func (on OnlineNetwork) NetworkStatus(ctx context.Context, _ *coinbase.NetworkRe
 		return nil, errors.ToRosetta(err)
 	}
 
-	return &coinbase.NetworkStatusResponse{
+	return &types.NetworkStatusResponse{
 		CurrentBlockIdentifier: block.Block,
 		CurrentBlockTimestamp:  block.MillisecondTimestamp,
 		GenesisBlockIdentifier: genesisBlock.Block,

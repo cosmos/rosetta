@@ -3,16 +3,17 @@ package main
 import (
 	"os"
 
-	"github.com/cosmos/rosetta"
-
 	"cosmossdk.io/log"
-	rosettaCmd "github.com/cosmos/rosetta/cmd"
+	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 func main() {
 	var (
-		cdc, interfaceRegistry = rosetta.MakeCodec()
-		logger                 = log.NewLogger(os.Stdout).With(log.ModuleKey, "rosetta")
+		logger            = log.NewLogger(os.Stdout).With(log.ModuleKey, "rosetta")
+		interfaceRegistry = codectypes.NewInterfaceRegistry()
+		cdc               = codec.NewProtoCodec(interfaceRegistry)
 	)
 
 	if err := rosettaCmd.RosettaCommand(interfaceRegistry, cdc).Execute(); err != nil {
