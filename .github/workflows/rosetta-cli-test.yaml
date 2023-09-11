@@ -31,6 +31,9 @@ jobs:
     strategy:
       fail-fast: true
     steps:
+      - name: Sleep for 2 minutes
+        run: sleep 120s
+        shell: bash
       - uses: actions/checkout@v3
       - name: review
         run: cat ./plugins/cosmos-hub/main.go
