@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
       - name: review
-        run: cat ./pluigins/cosmos-hub/main.go
+        run: cat ./plugins/cosmos-hub/main.go
       - name: Build Rosetta
         run: make rosetta && make plugin && ./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090 &" 
   run-rosetta-cli-tests:
