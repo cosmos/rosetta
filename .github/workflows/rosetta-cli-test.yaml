@@ -21,7 +21,7 @@ jobs:
         repository: cosmos/cosmos-sdk
         ref: main
     - name: set up simapp 
-      run: make build && export SIMD_BIN=./build/simd && make init-simapp && ./build/simd start &
+      run: make build && export SIMD_BIN=./build/simd && make init-simapp && ./build/simd start && curl localhost:26657/status &
     - name: Sleep for 2 minutes
       run: sleep 120s
       shell: bash
