@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+  cosmos:
+    image: tendermintdev/rosetta-cli:v0.6.7
+    command:
+      [
+        "simd",
+        "start",
+        "--pruning",
+        "nothing",
+        "--grpc-web.enable",
+        "true",
+        "--grpc-web.address",
+        "0.0.0.0:9091"
+      ]
+    ports:
+      - 9090:9090
+      - 26657:26657
+    logging:
+      driver: "none"
+
+  rosetta:
+    image: tendermintdev/rosetta-cli:v0.6.7
+    command:
+      [
+        "simd",
+        "rosetta",
+        "--blockchain",
+        "app",
+        "--network",
+        "network",
+        "--tendermint",
+        "cosmos:26657",
+        "--grpc",
+        "cosmos:9090",
+        "--addr",
+        ":8080"
+      ]
+    ports:
+      - 8080:8080
+
+  faucet:
+    image: tendermintdev/rosetta-cli:v0.6.7
+    working_dir: /rosetta
+    command: ["python3", "./config/faucet.py"]
+    expose:
+      - 8080
+
+  test_rosetta:
+    image: tendermintdev/rosetta-cli:v0.6.7
+    volumes:
+      - ./config:/rosetta/config:z
+    command: ["./config/run_tests.sh"]
+    working_dir: /rosetta
