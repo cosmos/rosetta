@@ -15,36 +15,21 @@ jobs:
   run-simapp:
     runs-on: ubuntu-latest
     steps:
-    - name: Clone supercharge website repository
-      uses: actions/checkout@v2
-    - name: Clone supercharge docs repository
-      uses: actions/checkout@v2
+    - name: Get cosmos-sdk repo
+      uses: actions/checkout@v3
       with:
         repository: cosmos/cosmos-sdk
         ref: main
     - name: set up simapp 
-      run: make build && export SIMD_BIN=./build/simd && make init-simapp && ./build/simd start & 
-
-  run-rosetta:
-    runs-on: ubuntu-latest
-    needs: run-simapp
-    strategy:
-      fail-fast: true
-    steps:
-      - name: Sleep for 2 minutes
-        run: sleep 120s
-        shell: bash
-      - uses: actions/checkout@v3
-      - name: review
-        run: cat ./plugins/cosmos-hub/main.go
-      - name: Build Rosetta
-        run: go mod tidy && make rosetta && make plugin && ./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090 &" 
-  run-rosetta-cli-tests:
-    runs-on: ubuntu-latest
-    needs: run-rosetta
-    strategy:
-      fail-fast: true
-    steps:
-      - uses: actions/checkout@v3
-      - name: Rosetta-cli setup & test
-        run: make rosetta-cli
+      run: make build && export SIMD_BIN=./build/simd && make init-simapp && ./build/simd start &
+    - name: Sleep for 2 minutes
+      run: sleep 120s
+      shell: bash
+    - uses: actions/checkout@v3
+    - name: review
+      run: cat ./plugins/cosmos-hub/main.go
+    - name: Build Rosetta
+      run: go mod tidy && make rosetta && make plugin && ./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090 &"
+    - uses: actions/checkout@v3
+    - name: Rosetta-cli setup & test
+      run: make rosetta-cli
