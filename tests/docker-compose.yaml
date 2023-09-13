@@ -40,16 +40,9 @@ services:
     ports:
       - 8080:8080
 
-  faucet:
-    image: tendermintdev/rosetta-cli:v0.6.7
-    working_dir: /rosetta
-    command: ["python3", "./config/faucet.py"]
-    expose:
-      - 8080
-
   test_rosetta:
     image: tendermintdev/rosetta-cli:v0.6.7
     volumes:
-      - ./config:/rosetta/config:z
+      - ./config:/rosetta:z
     command: ["./config/run_tests.sh"]
     working_dir: /rosetta
