@@ -18,5 +18,5 @@ EXPOSE 8080
 
 # Run simd by default
 CMD ["./rosetta", "--blockchain", "app", "--network", "network", "--tendermint", "cosmos:26657", "--grpc", "cosmos:9090", "--addr", ":8080"]
-ENTRYPOINT "./rosetta"
+ENTRYPOINT ["./rosetta"]
 STOPSIGNAL SIGTERM
