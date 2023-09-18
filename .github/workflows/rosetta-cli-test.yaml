@@ -21,10 +21,12 @@ jobs:
           repository: cosmos/cosmos-sdk
           ref: main
       - name: set up simapp
-        run: make build && export SIMD_BIN=./build/simd && make init-simapp && ./build/simd start &
+        run: make build && export SIMD_BIN=./build/simd && make init-simapp
 #      - name: Sleep for 2 minutes
 #        run: sleep 120s
 #        shell: bash
+      - name: Run simapp
+        run: ./build/simd start
       - name: review
         run: ls build && curl localhost:26657/status
       - name: Build Rosetta
