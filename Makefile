@@ -35,4 +35,5 @@ docker:
 	docker build . --tag rosetta
 
 rosetta-cli:
+	go install github.com/coinbase/rosetta-cli@v0.10.0
 	./scripts/rosetta-cli-test.sh
