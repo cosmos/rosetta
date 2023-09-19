@@ -35,7 +35,5 @@ jobs:
         run: go mod tidy && make rosetta && make plugin
       - name: Run Rosetta service
         run: ./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090" &
-      - name: Install rosetta-cli
-        run: go install github.com/coinbase/rosetta-cli@v0.10.0
       - name: Test rosetta through Rosetta-cli
         run: make rosetta-cli
