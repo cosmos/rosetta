@@ -15,6 +15,9 @@ jobs:
   run-simapp:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '^1.21.1'
       - name: Get cosmos-sdk repo
         uses: actions/checkout@v3
         with:
