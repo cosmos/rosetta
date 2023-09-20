@@ -30,3 +30,9 @@ lint-fix:
 	@./scripts/go-lint-all.bash --fix
 
 .PHONY: all build rosetta test lint lint-fix
+
+docker:
+	docker build . --tag rosetta
+
+rosetta-cli:
+	./scripts/rosetta-cli-test.sh
