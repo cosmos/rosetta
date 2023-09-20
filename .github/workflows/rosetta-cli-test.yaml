@@ -24,7 +24,7 @@ jobs:
           repository: cosmos/cosmos-sdk
           ref: main
       - name: set up simapp
-        run: make build && export SIMD_BIN=./build/simd && make init-simapp
+        run: make build && export SIMD_BIN=./build/simd && make init-simapp && ./tests/rosetta-cli/data.sh
       - name: Run simapp
         run: ./build/simd start &
       - name: Wait for simd to boot up for 5 mins and produce blocks
