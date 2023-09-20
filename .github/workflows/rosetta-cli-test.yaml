@@ -22,9 +22,6 @@ jobs:
           ref: main
       - name: set up simapp
         run: make build && export SIMD_BIN=./build/simd && make init-simapp
-#      - name: Sleep for 2 minutes
-#        run: sleep 120s
-#        shell: bash
       - name: Run simapp
         run: ./build/simd start &
       - name: Checkout back to rosetta
@@ -33,6 +30,9 @@ jobs:
         run: go mod tidy && make rosetta && make plugin
       - name: Run Rosetta service
         run: ./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090" &
+      - name: Sleep for 2 minutes
+        run: sleep 120s
+        shell: bash
       - name: Checkl blockchain status
         run: curl localhost:26657/status
       - name: Test rosetta through Rosetta-cli
