@@ -33,8 +33,6 @@ jobs:
       - name: Check blockchain status
         run: curl localhost:26657/status
       - uses: actions/setup-go@v4
-      - name: Load data
-        run: ./tests/rosetta-cli/data.sh
       - name: Build Rosetta
         run: go mod tidy && make rosetta && make plugin
       - name: Run Rosetta service

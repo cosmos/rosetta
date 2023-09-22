@@ -35,4 +35,5 @@ docker:
 	docker build . --tag rosetta
 
 rosetta-cli:
+	./tests/rosetta-cli/data.sh
 	./tests/rosetta-cli/rosetta-cli-test.sh
