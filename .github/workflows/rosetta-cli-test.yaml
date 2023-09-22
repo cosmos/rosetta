@@ -27,9 +27,9 @@ jobs:
         run: make build && export SIMD_BIN=./build/simd
       - name: Run simapp
         run: ./build/simd start &
-#      - name: Wait for simd to boot up for 5 mins and produce blocks
-#        run: sleep 300s
-#        shell: bash
+      - name: Wait for simd to boot up for 5 mins and produce blocks
+        run: sleep 30s
+        shell: bash
       - name: Check blockchain status
         run: curl localhost:26657/status
       - uses: actions/setup-go@v4
