@@ -23,17 +23,16 @@ jobs:
         with:
           repository: cosmos/cosmos-sdk
           ref: main
+          path: './cosmos-sdk'
       - name: set up simapp
-        run: make build && export SIMD_BIN=./build/simd && make init-simapp && ./tests/rosetta-cli/data.sh
+        run: cd ./cosmos-sdk/ && make build && export SIMD_BIN=./build/simd && ./tests/rosetta-cli/data.sh
       - name: Run simapp
-        run: ./build/simd start &
-      - name: Wait for simd to boot up for 5 mins and produce blocks
-        run: sleep 300s
-        shell: bash
+        run: ./cosmos-sdk/build/simd start &
+#      - name: Wait for simd to boot up for 5 mins and produce blocks
+#        run: sleep 300s
+#        shell: bash
       - name: Check blockchain status
         run: curl localhost:26657/status
-      - name: Checkout back to rosetta
-        uses: actions/checkout@v3
       - name: Build Rosetta
         run: go mod tidy && make rosetta && make plugin
       - name: Run Rosetta service
