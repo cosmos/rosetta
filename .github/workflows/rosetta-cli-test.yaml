@@ -15,6 +15,7 @@ jobs:
   run-simapp:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: '^1.21.1'
@@ -23,16 +24,20 @@ jobs:
         with:
           repository: cosmos/cosmos-sdk
           ref: main
+          submodules: true
       - name: set up simapp
-        run: make build && export SIMD_BIN=./build/simd && make init-simapp
+        run:
+          cd cosmos-sdk && 
+          make build && 
+          export SIMD_BIN=./build/simd &&
+          make init-simapp
       - name: Run simapp
-        run: ./build/simd start &
+        run: ./cosmos-sdk/build/simd start &
       - name: Wait for simd to boot up for 5 mins and produce blocks
         run: sleep 30s
         shell: bash
       - name: Check blockchain status
         run: curl localhost:26657/status
-      - uses: actions/checkout@v4
       - name: Build Rosetta
         run: go mod tidy && make rosetta && make plugin
       - name: Run Rosetta service
