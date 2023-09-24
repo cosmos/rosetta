@@ -44,5 +44,5 @@ jobs:
         run: curl localhost:8081/block
       - name: Test rosetta through Rosetta-cli
         run:
-          chmod -x ./tests/rosetta-cli/data.sh
+          chmod -x ./tests/rosetta-cli/data.sh &&
           make rosetta-cli
