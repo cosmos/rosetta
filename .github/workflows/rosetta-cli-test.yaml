@@ -27,6 +27,7 @@ jobs:
           submodules: true
       - name: set up simapp
         run:
+          ls &&
           cd cosmos-sdk && 
           make build && 
           export SIMD_BIN=./build/simd &&
