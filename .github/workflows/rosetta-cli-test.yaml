@@ -30,9 +30,9 @@ jobs:
           ls &&
           cd cosmos-sdk && 
           make build && 
-          export SIMD_BIN=./cosmos-sdk/build/simd &&
-          ls &&
-          pwd &&
+          export SIMD_BIN=./build/simd &&
+          ls ./build &&
+          ls ./scripts &&
           make init-simapp
       - name: Run simapp
         run: ./cosmos-sdk/build/simd start &
