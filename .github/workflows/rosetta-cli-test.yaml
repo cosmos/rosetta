@@ -33,8 +33,8 @@ jobs:
           make init-simapp
       - name: Run simapp
         run: ./cosmos-sdk/build/simd start &
-      - name: Wait for simd to boot up for 5 mins and produce blocks
-        run: sleep 30s
+      - name: Wait for simd to boot up for 2 mins and produce blocks
+        run: sleep 120s
         shell: bash
       - name: Check blockchain status
         run: curl localhost:26657/status
