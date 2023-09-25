@@ -27,12 +27,9 @@ jobs:
           path: './cosmos-sdk'
       - name: set up simapp
         run:
-          ls &&
           cd cosmos-sdk && 
           make build && 
           export SIMD_BIN=./build/simd &&
-          ls ./build &&
-          ls ./scripts &&
           make init-simapp
       - name: Run simapp
         run: ./cosmos-sdk/build/simd start &
@@ -52,6 +49,7 @@ jobs:
         run: curl localhost:8081/block
       - name: Test rosetta through Rosetta-cli
         run:
+          export SIMD_BIN=./cosmos-sdk/build/simd &&
           chmod +x ./tests/rosetta-cli/data.sh &&
           make rosetta-cli
         shell: bash
