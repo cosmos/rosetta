@@ -31,6 +31,8 @@ jobs:
           cd cosmos-sdk && 
           make build && 
           export SIMD_BIN=./cosmos-sdk/build/simd &&
+          ls &&
+          pwd &&
           make init-simapp
       - name: Run simapp
         run: ./cosmos-sdk/build/simd start &
