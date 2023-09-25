@@ -24,7 +24,7 @@ jobs:
         with:
           repository: cosmos/cosmos-sdk
           ref: main
-          submodules: true
+          path: './cosmos-sdk'
       - name: set up simapp
         run:
           ls &&
