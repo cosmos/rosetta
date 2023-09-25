@@ -47,9 +47,13 @@ jobs:
         shell: bash
       - name: Check rosetta status
         run: curl localhost:8081/block
-      - name: Test rosetta through Rosetta-cli
+      - name: Generate wallets and transactions
         run:
           export SIMD_BIN=./cosmos-sdk/build/simd &&
           chmod +x ./tests/rosetta-cli/data.sh &&
+          ./tests/rosetta-cli/data.sh
+        shell: bash
+      - name: Test rosetta through Rosetta-cli
+        run:
           make rosetta-cli
         shell: bash
