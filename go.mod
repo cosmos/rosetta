@@ -5,8 +5,8 @@ go 1.21
 require (
 	cosmossdk.io/api v0.7.2
 	cosmossdk.io/log v1.2.1
-	cosmossdk.io/math v1.1.2
-	cosmossdk.io/x/tx v0.10.0
+	cosmossdk.io/math v1.1.3-rc.1
+	cosmossdk.io/x/tx v0.11.0
 	github.com/coinbase/rosetta-sdk-go/types v1.0.0
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-sdk v0.50.0-rc.0
