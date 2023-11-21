@@ -3,6 +3,7 @@ package rosetta
 import (
 	"encoding/json"
 	"fmt"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"strconv"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	crgerrs "github.com/cosmos/rosetta/lib/errors"
 )
 
@@ -63,15 +63,15 @@ func parseTxTip(tx authsigning.Tx) txv1beta1.Tip {
 	parsedTipAmount := []*v1beta1.Coin{}
 	tipper := string(tx.FeePayer())
 
-	if tx.GetTip() != nil {
-		for _, txCoin := range tx.GetTip().Amount {
-			parsedTipAmount = append(parsedTipAmount, &v1beta1.Coin{
-				Denom:  txCoin.Denom,
-				Amount: txCoin.Amount.String(),
-			})
-		}
-		tipper = tx.GetTip().Tipper
-	}
+	//if tx.GetTip() != nil {
+	//	for _, txCoin := range tx.GetTip().Amount {
+	//		parsedTipAmount = append(parsedTipAmount, &v1beta1.Coin{
+	//			Denom:  txCoin.Denom,
+	//			Amount: txCoin.Amount.String(),
+	//		})
+	//	}
+	//	tipper = tx.GetTip().Tipper
+	//}
 
 	return txv1beta1.Tip{
 		Amount: parsedTipAmount,
