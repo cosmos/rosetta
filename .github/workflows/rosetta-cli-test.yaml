@@ -46,7 +46,7 @@ jobs:
         run: sleep 30s
         shell: bash
       - name: Check rosetta status
-        run: curl localhost:8081/block
+        run: curl localhost:8080/block
       - name: Generate wallets and transactions
         run:
           export SIMD_BIN=./cosmos-sdk/build/simd &&
