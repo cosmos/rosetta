@@ -3,9 +3,10 @@ package rosetta
 import (
 	"encoding/json"
 	"fmt"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"strconv"
 	"time"
+
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
 	txv1beta1 "cosmossdk.io/api/cosmos/tx/v1beta1"
@@ -59,11 +60,11 @@ func parseSignerData(signerData authsigning.SignerData) signing2.SignerData {
 	return signing2.SignerData{Address: strconv.FormatUint(signerData.AccountNumber, 10), ChainID: signerData.ChainID, AccountNumber: signerData.AccountNumber, Sequence: signerData.Sequence, PubKey: &parsedSignerDataPublicKey}
 }
 
-func parseTxTip(tx authsigning.Tx) txv1beta1.Tip {
+func parseTxTip(tx authsigning.Tx) txv1beta1.Tip { // nolint: staticcheck // Because we still need to use
 	parsedTipAmount := []*v1beta1.Coin{}
 	tipper := string(tx.FeePayer())
 
-	//if tx.GetTip() != nil {
+	// if tx.GetTip() != nil {
 	//	for _, txCoin := range tx.GetTip().Amount {
 	//		parsedTipAmount = append(parsedTipAmount, &v1beta1.Coin{
 	//			Denom:  txCoin.Denom,
@@ -73,7 +74,7 @@ func parseTxTip(tx authsigning.Tx) txv1beta1.Tip {
 	//	tipper = tx.GetTip().Tipper
 	//}
 
-	return txv1beta1.Tip{
+	return txv1beta1.Tip{ // nolint: staticcheck // Because we still need to use
 		Amount: parsedTipAmount,
 		Tipper: tipper,
 	}

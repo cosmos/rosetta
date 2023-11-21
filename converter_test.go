@@ -56,7 +56,7 @@ func (s *ConverterTestSuite) SetupTest() {
 	s.unsignedTx = builder.GetTx()
 }
 
-//func (s *ConverterTestSuite) TestFromRosettaOpsToTxSuccess() {
+// func (s *ConverterTestSuite) TestFromRosettaOpsToTxSuccess() {
 //	addr1 := sdk.AccAddress("address1").String()
 //	addr2 := sdk.AccAddress("address2").String()
 //
@@ -169,14 +169,13 @@ func (s *ConverterTestSuite) TestOpsAndSigners() {
 		_, err := s.txConf.TxEncoder()(sdkTx)
 		s.Require().NoError(err)
 
-		//ops, signers, err := s.c.ToRosetta().OpsAndSigners(txBytes)
-		//s.Require().NoError(err)
+		// s.Require().NoError(err)
 
 		_, err = sdkTx.GetSigners()
 		s.Require().NoError(err)
-		//s.Require().Equal(len(ops), len(sdkTx.GetMsgs())*len(signerAddrs), "operation number mismatch")
+		// s.Require().Equal(len(ops), len(sdkTx.GetMsgs())*len(signerAddrs), "operation number mismatch")
 		//
-		//s.Require().Equal(len(signers), len(signerAddrs), "signers number mismatch")
+		// s.Require().Equal(len(signers), len(signerAddrs), "signers number mismatch")
 	})
 }
 
