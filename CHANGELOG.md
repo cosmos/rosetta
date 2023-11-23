@@ -38,6 +38,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* [#58](https://github.com/cosmos/rosetta/pull/58) Upgraded cosmos-sdk version and removed tip handling.
+
+## v0.47.x 
+
+* Migrated rosetta from cosmos-sdk repository to it's own standalone.
+
+### Improvements
+
 * [#14272](https://github.com/cosmos/cosmos-sdk/pull/14272) Use `coinbase/rosetta-sdk-go/types` packages instead of comsos fork.
 
 ### Bug Fixes
