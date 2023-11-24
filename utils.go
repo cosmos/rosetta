@@ -6,13 +6,14 @@ import (
 	"strconv"
 	"time"
 
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
 	txv1beta1 "cosmossdk.io/api/cosmos/tx/v1beta1"
 	signing2 "cosmossdk.io/x/tx/signing"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	crgerrs "github.com/cosmos/rosetta/lib/errors"
 )
 
@@ -59,26 +60,6 @@ func parseSignerData(signerData authsigning.SignerData) signing2.SignerData {
 	return signing2.SignerData{Address: strconv.FormatUint(signerData.AccountNumber, 10), ChainID: signerData.ChainID, AccountNumber: signerData.AccountNumber, Sequence: signerData.Sequence, PubKey: &parsedSignerDataPublicKey}
 }
 
-func parseTxTip(tx authsigning.Tx) txv1beta1.Tip {
-	parsedTipAmount := []*v1beta1.Coin{}
-	tipper := string(tx.FeePayer())
-
-	if tx.GetTip() != nil {
-		for _, txCoin := range tx.GetTip().Amount {
-			parsedTipAmount = append(parsedTipAmount, &v1beta1.Coin{
-				Denom:  txCoin.Denom,
-				Amount: txCoin.Amount.String(),
-			})
-		}
-		tipper = tx.GetTip().Tipper
-	}
-
-	return txv1beta1.Tip{
-		Amount: parsedTipAmount,
-		Tipper: tipper,
-	}
-}
-
 func parseSignerInfo(signerData signing2.SignerData) []*txv1beta1.SignerInfo {
 	parsedSignerInfo := []*txv1beta1.SignerInfo{}
 	signerInfo := &txv1beta1.SignerInfo{
@@ -119,7 +100,6 @@ func parseFeeAmount(tx authsigning.Tx) []*v1beta1.Coin {
 }
 
 func parseAuthInfo(tx authsigning.Tx, signerData signing2.SignerData) *txv1beta1.AuthInfo {
-	parsedTxTip := parseTxTip(tx)
 	parsedFeeAmount := parseFeeAmount(tx)
 
 	parsedSignerInfo := parseSignerInfo(signerData)
@@ -132,7 +112,6 @@ func parseAuthInfo(tx authsigning.Tx, signerData signing2.SignerData) *txv1beta1
 			Payer:    string(tx.FeePayer()),
 			Granter:  string(tx.FeeGranter()),
 		},
-		Tip: &parsedTxTip,
 	}
 }
 

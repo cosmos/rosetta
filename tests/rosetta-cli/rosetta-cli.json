@@ -3,7 +3,7 @@
     "blockchain": "cosmos",
     "network": "cosmos"
   },
-  "online_url":"http://localhost:8081",
+  "online_url":"http://localhost:8080",
   "data_directory":"",
   "http_timeout":10,
   "max_retries":5,
@@ -32,7 +32,7 @@
     "results_output_file":"",
     "initial_balance_fetch_disabled":false,
     "end_conditions": {
-      "index": 100
+      "index": 30
     }
   },
   "construction":null
