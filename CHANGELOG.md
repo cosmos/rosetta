@@ -42,7 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## v0.47.x 
 
-* Migrated rosetta from cosmos-sdk repository to it's own standalone.
+* Migrated rosetta from cosmos-sdk repository to the standalone [repo](https://github.com/cosmos/rosetta).
 
 ### Improvements
 

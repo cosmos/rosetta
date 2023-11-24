@@ -32,7 +32,7 @@
     "results_output_file":"",
     "initial_balance_fetch_disabled":false,
     "end_conditions": {
-      "index": 40
+      "index": 30
     }
   },
   "construction":null
