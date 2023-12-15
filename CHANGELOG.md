@@ -26,9 +26,6 @@ Types of changes (Stanzas):
 "Improvements" for changes in existing functionality.
 "Deprecated" for soon-to-be removed features.
 "Bug Fixes" for any bug fixes.
-"Client Breaking" for breaking Protobuf, gRPC and REST routes used by end-users.
-"CLI Breaking" for breaking CLI commands.
-"API Breaking" for breaking exported APIs used by developers building on SDK.
 Ref: https://keepachangelog.com/en/1.0.0/
 -->
 
@@ -36,9 +33,21 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## v0.50.2
+
+### Features
+
+* [#37](https://github.com/cosmos/rosetta/pull/37) Added rosetta Dockerfile image.
+* [#41](https://github.com/cosmos/rosetta/pull/41) Added rosetta-CLI integration tests
+
 ### Improvements
 
+* [#27](https://github.com/cosmos/rosetta/pull/27) Multi zone and overall project enhancements.
+* [#29](https://github.com/cosmos/rosetta/pull/29) Error handling improvements.
+* [#44](https://github.com/cosmos/rosetta/pull/44) Added mock data and improved amount of processed blocks on Rosetta cli tests.
 * [#58](https://github.com/cosmos/rosetta/pull/58) Upgraded cosmos-sdk version and removed tip handling.
+
+## v0.47.x
 
 ## v0.47.x 
 
