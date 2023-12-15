@@ -169,13 +169,8 @@ func (s *ConverterTestSuite) TestOpsAndSigners() {
 		_, err := s.txConf.TxEncoder()(sdkTx)
 		s.Require().NoError(err)
 
-		// s.Require().NoError(err)
-
 		_, err = sdkTx.GetSigners()
 		s.Require().NoError(err)
-		// s.Require().Equal(len(ops), len(sdkTx.GetMsgs())*len(signerAddrs), "operation number mismatch")
-		//
-		// s.Require().Equal(len(signers), len(signerAddrs), "signers number mismatch")
 	})
 }
 
