@@ -2,10 +2,11 @@
 
 all: build
 
-rosetta:
+build:
+	cd plugins/cosmos-hub && make plugin
 	go build -mod=readonly ./cmd/rosetta
 
-build:
+rosetta:
 	go build -mod=readonly ./cmd/rosetta
 
 plugin:
