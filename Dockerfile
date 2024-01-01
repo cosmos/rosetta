@@ -16,7 +16,7 @@ RUN export SIMD_BIN=/go/src/github.com/cosmos/cosmos-sdk/build/simd && make init
 # ------------------------------------------------------------------------------
 # Build rosetta
 # ------------------------------------------------------------------------------
-FROM golang:1.20.10 AS rosetta
+FROM golang:1.21.5 AS rosetta
 
 ARG ROSETTA_VERSION
 
@@ -29,32 +29,17 @@ RUN git checkout $ROSETTA_VERSION && \
     go mod download
 
 RUN make build
-
-
-# ------------------------------------------------------------------------------
-# Target container for running the node and rosetta server
-# ------------------------------------------------------------------------------
-FROM golang:1.20.10
-
-# Install dependencies
-RUN apt-get update -y && \
-    apt-get install -y wget
-
-WORKDIR /app
+RUN cd plugins/cosmos-hub && make plugin
 
 COPY --from=cosmos \
   /go/src/github.com/cosmos/cosmos-sdk/build/simd \
   /app/simd
 
-# Install rosetta server
-COPY --from=rosetta \
-  /go/src/github.com/cosmos/rosetta/rosetta \
-  /app/rosetta
+COPY --from=cosmos \
+    /root/.simapp \
+    /root/.simapp
 
-## Install service start script
 ADD scripts/entrypoint.sh /scripts/entrypoint.sh
-USER root
-
 RUN chmod +x /scripts/entrypoint.sh
 
 EXPOSE 9650
