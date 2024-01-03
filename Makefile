@@ -8,6 +8,9 @@ build:
 plugin:
 	cd plugins/cosmos-hub && make plugin
 
+docker:
+	docker build . --tag rosetta
+
 test:
 	go test -mod=readonly -timeout 30m -coverprofile=coverage.out -covermode=atomic ./...
 
@@ -16,6 +19,7 @@ test-rosetta-ci:
 	go mod tidy && make build && make plugin
 	./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090" &
 	sleep 30
+	export SIMD_BIN=./cosmos-sdk/build/simd && chmod +x ./tests/rosetta-cli/data.sh && sh ./tests/rosetta-cli/data.sh
 	sh ./tests/rosetta-cli/rosetta-cli-test.sh
 
 ###############################################################################
@@ -34,9 +38,3 @@ lint-fix:
 	@./scripts/go-lint-all.bash --fix
 
 .PHONY: all build rosetta test lint lint-fix
-
-docker:
-	docker build . --tag rosetta
-
-rosetta-cli:
-	./tests/rosetta-cli/rosetta-cli-test.sh
