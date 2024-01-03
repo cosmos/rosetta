@@ -1,9 +1,6 @@
 #!/usr/bin/make -f
 
-all: build
-
-rosetta:
-	go build -mod=readonly ./cmd/rosetta
+all: build plugin test test-rosetta-ci
 
 build:
 	go build -mod=readonly ./cmd/rosetta
@@ -12,7 +9,14 @@ plugin:
 	cd plugins/cosmos-hub && make plugin
 
 test:
-	go test -mod=readonly ./...
+	go test -mod=readonly -timeout 30m -coverprofile=coverage.out -covermode=atomic ./...
+
+test-rosetta-ci:
+	sh ./scripts/simapp-start-node.sh &
+	go mod tidy && make build && make plugin
+	./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090" &
+	sleep 30
+	sh ./tests/rosetta-cli/rosetta-cli-test.sh
 
 ###############################################################################
 ###                                Linting                                  ###
