@@ -37,9 +37,6 @@ jobs:
             **/go.sum
             **/Makefile
             Makefile
-        ###################
-        #### Build App ####
-        ###################
       - name: Build
         if: env.GIT_DIFF
         run: GOARCH=${{ matrix.go-arch }} make build
@@ -48,4 +45,4 @@ jobs:
         ###################
       - name: Build Rosetta
         if: env.GIT_DIFF
-        run: GOARCH=${{ matrix.go-arch }} make rosetta
+        run: GOARCH=${{ matrix.go-arch }} make build

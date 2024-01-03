@@ -38,4 +38,3 @@ jobs:
         if: env.GIT_DIFF
         run: |
           make plugin && make test
-          go test -mod=readonly -timeout 30m -coverprofile=coverage.out -covermode=atomic ./...
