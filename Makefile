@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-all: build plugin test test-rosetta-ci
+all: build plugin
 
 build:
 	go build -mod=readonly ./cmd/rosetta
