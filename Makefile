@@ -16,10 +16,10 @@ test:
 
 test-rosetta-ci:
 	sh ./scripts/simapp-start-node.sh &
+	sleep 30
 	make build && make plugin
 	./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090" &
 	sleep 30
-	export SIMD_BIN=./cosmos-sdk/build/simd && chmod +x ./tests/rosetta-cli/data.sh && sh ./tests/rosetta-cli/data.sh
 	sh ./tests/rosetta-cli/rosetta-cli-test.sh
 
 ###############################################################################
