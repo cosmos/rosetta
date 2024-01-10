@@ -4,7 +4,9 @@ cd cosmos-sdk
 make build
 export SIMD_BIN=./build/simd
 make init-simapp --dry-run
-$SIMD_BIN start
+echo "simapp started"
+$SIMD_BIN start &
+echo "start"
 until curl --silent --head --fail http://localhost:26657/health; do
   sleep 1
 done
