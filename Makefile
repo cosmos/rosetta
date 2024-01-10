@@ -15,7 +15,7 @@ test:
 	go test -mod=readonly -timeout 30m -coverprofile=coverage.out -covermode=atomic ./...
 
 test-rosetta-ci:
-	sh ./scripts/simapp-start-node.sh &
+	sh ./scripts/simapp-start-node.sh
 	sleep 120
 	make build && make plugin
 	./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090" &

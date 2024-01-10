@@ -5,7 +5,6 @@ make build
 export SIMD_BIN=./build/simd
 make init-simapp --dry-run
 $SIMD_BIN start
-until curl --output /dev/null --silent --head --fail http://localhost:26657/health; do
-  echo "trying"
+until curl --silent --head --fail http://localhost:26657/health; do
   sleep 1
 done
