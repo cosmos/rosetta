@@ -16,7 +16,7 @@ test:
 
 test-rosetta-ci:
 	sh ./scripts/simapp-start-node.sh &
-	sleep 30
+	sleep 120
 	make build && make plugin
 	./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090" &
 	sleep 30
@@ -31,7 +31,7 @@ golangci_version=v1.51.2
 lint:
 	@echo "--> Running linter"
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version)
-	@./scripts/go-lint-all.bash --timeout=15m
+	@./scripts/gog-lint-all.bash --timeout=15m
 lint-fix:
 	@echo "--> Running linter"
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version)
