@@ -7,6 +7,5 @@ chmod 777 ./scripts/init-simapp.sh
 sh ./scripts/init-simapp.sh --just-print
 $SIMD_BIN start &
 until curl --output /dev/null --silent --head --fail http://localhost:26657/health; do
->>>>>>> 7db5729 (Ci fixed (?))
   sleep 1
 done
