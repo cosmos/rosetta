@@ -1,6 +1,7 @@
 git clone https://github.com/cosmos/cosmos-sdk.git
 # shellcheck disable=SC2164
 cd cosmos-sdk
+git checkout "$COSMOS_SDK_VERSION"
 make build
 export SIMD_BIN=./build/simd
 chmod 777 ./scripts/init-simapp.sh
