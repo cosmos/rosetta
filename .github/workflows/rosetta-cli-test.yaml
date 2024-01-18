@@ -19,41 +19,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '^1.21.1'
-      - name: Get cosmos-sdk repo
-        uses: actions/checkout@v4
-        with:
-          repository: cosmos/cosmos-sdk
-          ref: main
-          path: './cosmos-sdk'
-      - name: set up simapp
+      - name: Run make test-rosetta-ci
         run:
-          cd cosmos-sdk && 
-          make build && 
-          export SIMD_BIN=./build/simd &&
-          make init-simapp
-      - name: Run simapp
-        run: ./cosmos-sdk/build/simd start &
-      - name: Wait for simd to boot up for 2 mins and produce blocks
-        run: sleep 120s
-        shell: bash
-      - name: Check blockchain status
-        run: curl localhost:26657/status
-      - name: Build Rosetta
-        run: go mod tidy && make rosetta && make plugin
-      - name: Run Rosetta service
-        run: ./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090" &
-      - name: Wait for rosetta boot up for 30 secs
-        run: sleep 30s
-        shell: bash
-      - name: Check rosetta status
-        run: curl localhost:8080/block
-      - name: Generate wallets and transactions
-        run:
-          export SIMD_BIN=./cosmos-sdk/build/simd &&
-          chmod +x ./tests/rosetta-cli/data.sh &&
-          ./tests/rosetta-cli/data.sh
-        shell: bash
-      - name: Test rosetta through Rosetta-cli
-        run:
-          make rosetta-cli
+          COSMOS_SDK_VERSION=v0.50.3
+          make test-rosetta-ci
         shell: bash
