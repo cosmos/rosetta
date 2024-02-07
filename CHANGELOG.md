@@ -36,9 +36,26 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.50.3+1](https://github.com/cosmos/rosetta/releases/tag/v0.50.3+1) 2024-01-07
+
+> v0.50.3 has been retracted due to a mistake in dependencies. Please use v0.50.3+1 instead.
+
+### Improvements
+
+* [#73](https://github.com/cosmos/rosetta/pull/73) Update to cosmos-sdk v0.50.3
+* [#70](https://github.com/cosmos/rosetta/pull/70) Coinbase accurate dockerfile.
+
+### Bug Fixes
+
+* [#82](https://github.com/cosmos/rosetta/pull/82) Fix cosmossdk.io/core dependencies.
+
+## [v0.50.2](https://github.com/cosmos/rosetta/releases/tag/v0.50.2) 2023-12-12
+
 ### Improvements
 
 * [#58](https://github.com/cosmos/rosetta/pull/58) Upgraded cosmos-sdk version and removed tip handling.
+* [#37](https://github.com/cosmos/rosetta/pull/37) Dockerization of Rosetta.
+* [#29](https://github.com/cosmos/rosetta/pull/29) Improvements on error handling.
 
 ## v0.47.x 
 
