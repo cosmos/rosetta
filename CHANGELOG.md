@@ -36,7 +36,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-## [v0.50.4](https://github.com/cosmos/rosetta/releases/tag/v0.50.3+1) 2024-02-26
+## [v0.50.4](https://github.com/cosmos/rosetta/releases/tag/v0.50.4) 2024-02-26
 
 ### Improvements
 
