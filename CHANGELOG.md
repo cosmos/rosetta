@@ -36,6 +36,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.50.4](https://github.com/cosmos/rosetta/releases/tag/v0.50.3+1) 2024-02-26
+
+### Improvements
+
+* [#88](https://github.com/cosmos/rosetta/pull/88) Update to cosmos-sdk v0.50.4
+
 ## [v0.50.3+1](https://github.com/cosmos/rosetta/releases/tag/v0.50.3+1) 2024-01-07
 
 > v0.50.3 has been retracted due to a mistake in dependencies. Please use v0.50.3+1 instead.
@@ -48,7 +54,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * [#82](https://github.com/cosmos/rosetta/pull/82) Fix cosmossdk.io/core dependencies.
-
 ## [v0.50.2](https://github.com/cosmos/rosetta/releases/tag/v0.50.2) 2023-12-12
 
 ### Improvements
