@@ -18,9 +18,6 @@ import (
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
 	sdkmath "cosmossdk.io/math"
-	crgerrs "github.com/cosmos/rosetta/lib/errors"
-	crgtypes "github.com/cosmos/rosetta/lib/types"
-
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -30,6 +27,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
+	crgtypes "github.com/cosmos/rosetta/lib/types"
+	protov2 "google.golang.org/protobuf/proto"
 )
 
 // Converter is a utility that can be used to convert
@@ -62,7 +62,7 @@ type ToRosettaConverter interface {
 	// Amounts converts sdk.Coins to rosetta.Amounts
 	Amounts(ownedCoins []sdk.Coin, availableCoins sdk.Coins) []*rosettatypes.Amount
 	// Ops converts an sdk.Msg to rosetta operations
-	Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, error)
+	Ops(status string, msg protov2.Message) ([]*rosettatypes.Operation, error)
 	// OpsAndSigners takes raw transaction bytes and returns rosetta operations and the expected signers
 	OpsAndSigners(txBytes []byte) (ops []*rosettatypes.Operation, signers []*rosettatypes.AccountIdentifier, err error)
 	// Meta converts an sdk.Msg to rosetta metadata
@@ -238,14 +238,13 @@ func (c converter) Meta(msg sdk.Msg) (meta map[string]interface{}, err error) {
 // Ops will create an operation for each msg signer
 // with the message proto name as type, and the raw fields
 // as metadata
-func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, error) {
-	opName := sdk.MsgTypeURL(msg)
-
-	meta, err := c.Meta(msg)
-	if err != nil {
-		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting meta from message %s", err.Error()))
-	}
-
+func (c converter) Ops(status string, msg protov2.Message) ([]*rosettatypes.Operation, error) {
+	//meta, err := c.Meta(msg)
+	//if err != nil {
+	//	return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting meta from message %s", err.Error()))
+	//}
+	x := msg.ProtoReflect()
+	fmt.Println(x)
 	legacyMsg, ok := msg.(sdk.LegacyMsg)
 	if !ok {
 		return nil, crgerrs.WrapError(crgerrs.ErrCodec, "Failed asserting LegacyMsg type")
@@ -254,10 +253,10 @@ func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, e
 	ops := make([]*rosettatypes.Operation, len(legacyMsg.GetSigners()))
 	for i, signer := range legacyMsg.GetSigners() {
 		op := &rosettatypes.Operation{
-			Type:     opName,
-			Status:   &status,
-			Account:  &rosettatypes.AccountIdentifier{Address: signer.String()},
-			Metadata: meta,
+			Type:    "/" + string(msg.ProtoReflect().Descriptor().FullName()),
+			Status:  &status,
+			Account: &rosettatypes.AccountIdentifier{Address: signer.String()},
+			//Metadata: meta,
 		}
 
 		ops[i] = op
@@ -290,7 +289,9 @@ func (c converter) Tx(rawTx cmttypes.Tx, txResult *abci.ExecTxResult) (*rosettat
 		}
 	}
 	// get operations from msgs
-	msgs := tx.GetMsgs()
+	//msgs := tx.GetMsgs()
+	msgs, err := tx.GetMsgsV2()
+	// todo
 	var rawTxOps []*rosettatypes.Operation
 
 	for _, msg := range msgs {
