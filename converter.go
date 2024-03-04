@@ -245,7 +245,7 @@ func (c converter) Ops(status string, msg protov2.Message) ([]*rosettatypes.Oper
 		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting meta from message %s", err.Error()))
 	}
 
-	signers, err := c.cdc.InterfaceRegistry().SigningContext().GetSigners(msg)
+	signers, err := c.cdc.GetMsgV2Signers(msg)
 	if err != nil {
 		return nil, err
 	}
