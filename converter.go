@@ -9,8 +9,6 @@ import (
 	"reflect"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
-	"google.golang.org/protobuf/encoding/protojson"
-
 	rosettatypes "github.com/coinbase/rosetta-sdk-go/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto"
@@ -30,7 +28,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crgerrs "github.com/cosmos/rosetta/lib/errors"
 	crgtypes "github.com/cosmos/rosetta/lib/types"
-	protov2 "google.golang.org/protobuf/proto"
 )
 
 // Converter is a utility that can be used to convert
@@ -63,11 +60,11 @@ type ToRosettaConverter interface {
 	// Amounts converts sdk.Coins to rosetta.Amounts
 	Amounts(ownedCoins []sdk.Coin, availableCoins sdk.Coins) []*rosettatypes.Amount
 	// Ops converts an sdk.Msg to rosetta operations
-	Ops(status string, msg protov2.Message) ([]*rosettatypes.Operation, error)
+	Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, error)
 	// OpsAndSigners takes raw transaction bytes and returns rosetta operations and the expected signers
 	OpsAndSigners(txBytes []byte) (ops []*rosettatypes.Operation, signers []*rosettatypes.AccountIdentifier, err error)
 	// Meta converts an sdk.Msg to rosetta metadata
-	Meta(msg protov2.Message) (meta map[string]interface{}, err error)
+	Meta(msg sdk.Msg) (meta map[string]interface{}, err error)
 	// SignerData returns account signing data from a queried any account
 	SignerData(anyAccount *codectypes.Any) (*SignerData, error)
 	// SigningComponents returns rosetta's components required to build a signable transaction
@@ -164,12 +161,11 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 			return nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 		}
 
-		legacyMsg, ok := msg.(sdk.LegacyMsg)
-		if !ok {
-			return nil, crgerrs.WrapError(crgerrs.ErrCodec, "Failed asserting LegacyMsg type")
+		signers, _, err := c.cdc.GetMsgV1Signers(msg)
+		if err != nil {
+			return nil, err
 		}
 
-		signers := legacyMsg.GetSigners()
 		// check if there are enough signers
 		if len(signers) == 0 {
 			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, fmt.Sprintf("operation at index %d got no signers", op.OperationIdentifier.Index))
@@ -222,8 +218,8 @@ func (c converter) Msg(meta map[string]interface{}, msg sdk.Msg) error {
 	return c.cdc.UnmarshalJSON(metaBytes, msg)
 }
 
-func (c converter) Meta(msg protov2.Message) (meta map[string]interface{}, err error) {
-	b, err := protojson.Marshal(msg)
+func (c converter) Meta(msg sdk.Msg) (meta map[string]interface{}, err error) {
+	b, err := c.cdc.MarshalJSON(msg)
 	if err != nil {
 		return nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 	}
@@ -239,13 +235,13 @@ func (c converter) Meta(msg protov2.Message) (meta map[string]interface{}, err e
 // Ops will create an operation for each msg signer
 // with the message proto name as type, and the raw fields
 // as metadata
-func (c converter) Ops(status string, msg protov2.Message) ([]*rosettatypes.Operation, error) {
+func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, error) {
 	meta, err := c.Meta(msg)
 	if err != nil {
 		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting meta from message %s", err.Error()))
 	}
 
-	signers, err := c.cdc.GetMsgV2Signers(msg)
+	signers, _, err := c.cdc.GetMsgV1Signers(msg)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +250,7 @@ func (c converter) Ops(status string, msg protov2.Message) ([]*rosettatypes.Oper
 	for i, signer := range signers {
 		addr, _ := c.cdc.InterfaceRegistry().SigningContext().AddressCodec().BytesToString(signer)
 		op := &rosettatypes.Operation{
-			Type:     "/" + string(msg.ProtoReflect().Descriptor().FullName()),
+			Type:     sdk.MsgTypeURL(msg),
 			Status:   &status,
 			Account:  &rosettatypes.AccountIdentifier{Address: addr},
 			Metadata: meta,
@@ -290,9 +286,8 @@ func (c converter) Tx(rawTx cmttypes.Tx, txResult *abci.ExecTxResult) (*rosettat
 		}
 	}
 	// get operations from msgs
-	//msgs := tx.GetMsgs()
-	msgs, err := tx.GetMsgsV2()
-	// todo
+	msgs := tx.GetMsgs()
+
 	var rawTxOps []*rosettatypes.Operation
 
 	for _, msg := range msgs {
