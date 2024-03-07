@@ -2,12 +2,12 @@ package rosetta
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	crgerrs "github.com/cosmos/rosetta/lib/errors"
 
 	"github.com/coinbase/rosetta-sdk-go/types"
+	url "github.com/goware/urlx"
 	"github.com/spf13/pflag"
 
 	crg "github.com/cosmos/rosetta/lib/server"
@@ -16,6 +16,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+const (
+	HTTP  = "http"
+	HTTPS = "https"
+	TCP   = "tcp"
 )
 
 // configuration defaults constants
@@ -150,11 +156,35 @@ func (c *Config) validate() error {
 	if c.TendermintRPC == "" {
 		return crgerrs.WrapError(crgerrs.ErrConfig, "cometbft rpc not provided")
 	}
-	if !strings.HasPrefix(c.TendermintRPC, "tcp://") {
-		c.TendermintRPC = fmt.Sprintf("tcp://%s", c.TendermintRPC)
+	validatedURL, err := c.validateUrl(c.TendermintRPC)
+	if err != nil {
+		return err
 	}
+	c.TendermintRPC = validatedURL
 
 	return nil
+}
+
+func (c *Config) validateUrl(tendermintRPC string) (string, error) {
+	u, err := url.Parse(tendermintRPC)
+	if err != nil {
+		return "", crgerrs.WrapError(crgerrs.ErrConfig, err.Error())
+	}
+
+	if u.Port() == "443" && u.Scheme != HTTPS {
+		u.Scheme = HTTPS
+	}
+
+	if u.Port() == "" {
+		switch u.Scheme {
+		case HTTP, TCP:
+			u.Host += ":80"
+		case HTTPS:
+			u.Host += ":443"
+		}
+	}
+
+	return u.String(), nil
 }
 
 // WithCodec extends the configuration with a predefined Codec
