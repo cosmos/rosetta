@@ -163,7 +163,7 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 
 		signers, _, err := c.cdc.GetMsgV1Signers(msg)
 		if err != nil {
-			return nil, err
+			return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting msg signers %s", err.Error()))
 		}
 
 		// check if there are enough signers
@@ -243,12 +243,15 @@ func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, e
 
 	signers, _, err := c.cdc.GetMsgV1Signers(msg)
 	if err != nil {
-		return nil, err
+		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting msg signers in Ops %s", err.Error()))
 	}
 
 	ops := make([]*rosettatypes.Operation, len(signers))
 	for i, signer := range signers {
-		addr, _ := c.cdc.InterfaceRegistry().SigningContext().AddressCodec().BytesToString(signer)
+		addr, err := c.ir.SigningContext().AddressCodec().BytesToString(signer)
+		if err != nil {
+			return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting address from signer %s", err.Error()))
+		}
 		op := &rosettatypes.Operation{
 			Type:     sdk.MsgTypeURL(msg),
 			Status:   &status,
