@@ -22,6 +22,8 @@ const (
 	HTTP  = "http"
 	HTTPS = "https"
 	TCP   = "tcp"
+
+	HTTPSPORT = "443"
 )
 
 // configuration defaults constants
@@ -156,7 +158,7 @@ func (c *Config) validate() error {
 	if c.TendermintRPC == "" {
 		return crgerrs.WrapError(crgerrs.ErrConfig, "cometbft rpc not provided")
 	}
-	validatedURL, err := c.validateUrl(c.TendermintRPC)
+	validatedURL, err := c.validateURL(c.TendermintRPC)
 	if err != nil {
 		return err
 	}
@@ -165,13 +167,13 @@ func (c *Config) validate() error {
 	return nil
 }
 
-func (c *Config) validateUrl(tendermintRPC string) (string, error) {
+func (c *Config) validateURL(tendermintRPC string) (string, error) {
 	u, err := url.Parse(tendermintRPC)
 	if err != nil {
 		return "", crgerrs.WrapError(crgerrs.ErrConfig, err.Error())
 	}
 
-	if u.Port() == "443" && u.Scheme != HTTPS {
+	if u.Port() == HTTPSPORT && u.Scheme != HTTPS {
 		u.Scheme = HTTPS
 	}
 

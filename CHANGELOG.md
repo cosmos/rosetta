@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Bug Fixes
+
+* [99](https://github.com/cosmos/rosetta/pull/99) Rosetta now can connect to cometBFT over https.
+
 ### Improvements
 
 * [93](https://github.com/cosmos/rosetta/pull/93) Removes the use of `LegacyMsg.GetSigners()` in favor of `codec.GetMsgV1Signers`.
