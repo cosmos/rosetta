@@ -8,6 +8,9 @@ build:
 plugin:
 	cd plugins/cosmos-hub && make plugin
 
+plugin-debug:
+	cd plugins/cosmos-hub && make plugin-debug
+
 docker:
 	docker build . --tag rosetta
 
