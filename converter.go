@@ -9,7 +9,6 @@ import (
 	"reflect"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
-
 	rosettatypes "github.com/coinbase/rosetta-sdk-go/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto"
@@ -18,9 +17,6 @@ import (
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
 	sdkmath "cosmossdk.io/math"
-	crgerrs "github.com/cosmos/rosetta/lib/errors"
-	crgtypes "github.com/cosmos/rosetta/lib/types"
-
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -30,6 +26,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
+	crgtypes "github.com/cosmos/rosetta/lib/types"
 )
 
 // Converter is a utility that can be used to convert
@@ -163,12 +161,11 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 			return nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 		}
 
-		legacyMsg, ok := msg.(sdk.LegacyMsg)
-		if !ok {
-			return nil, crgerrs.WrapError(crgerrs.ErrCodec, "Failed asserting LegacyMsg type")
+		signers, _, err := c.cdc.GetMsgV1Signers(msg)
+		if err != nil {
+			return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting msg signers %s", err.Error()))
 		}
 
-		signers := legacyMsg.GetSigners()
 		// check if there are enough signers
 		if len(signers) == 0 {
 			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, fmt.Sprintf("operation at index %d got no signers", op.OperationIdentifier.Index))
@@ -239,24 +236,26 @@ func (c converter) Meta(msg sdk.Msg) (meta map[string]interface{}, err error) {
 // with the message proto name as type, and the raw fields
 // as metadata
 func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, error) {
-	opName := sdk.MsgTypeURL(msg)
-
 	meta, err := c.Meta(msg)
 	if err != nil {
 		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting meta from message %s", err.Error()))
 	}
 
-	legacyMsg, ok := msg.(sdk.LegacyMsg)
-	if !ok {
-		return nil, crgerrs.WrapError(crgerrs.ErrCodec, "Failed asserting LegacyMsg type")
+	signers, _, err := c.cdc.GetMsgV1Signers(msg)
+	if err != nil {
+		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting msg signers in Ops %s", err.Error()))
 	}
 
-	ops := make([]*rosettatypes.Operation, len(legacyMsg.GetSigners()))
-	for i, signer := range legacyMsg.GetSigners() {
+	ops := make([]*rosettatypes.Operation, len(signers))
+	for i, signer := range signers {
+		addr, err := c.ir.SigningContext().AddressCodec().BytesToString(signer)
+		if err != nil {
+			return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting address from signer %s", err.Error()))
+		}
 		op := &rosettatypes.Operation{
-			Type:     opName,
+			Type:     sdk.MsgTypeURL(msg),
 			Status:   &status,
-			Account:  &rosettatypes.AccountIdentifier{Address: signer.String()},
+			Account:  &rosettatypes.AccountIdentifier{Address: addr},
 			Metadata: meta,
 		}
 
@@ -291,6 +290,7 @@ func (c converter) Tx(rawTx cmttypes.Tx, txResult *abci.ExecTxResult) (*rosettat
 	}
 	// get operations from msgs
 	msgs := tx.GetMsgs()
+
 	var rawTxOps []*rosettatypes.Operation
 
 	for _, msg := range msgs {
