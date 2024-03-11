@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* [99](https://github.com/cosmos/rosetta/pull/99) Rosetta now can connect to cometBFT over https.
+* [99](https://github.com/cosmos/rosetta/pull/99) Rosetta now can connect to cometBFT over HTTPS.
 
 ### Improvements
 

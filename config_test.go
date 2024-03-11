@@ -61,7 +61,7 @@ func TestConfig_validateUrl(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{}
-			got, err := c.validateUrl(tt.tendermintRPC)
+			got, err := c.validateURL(tt.tendermintRPC)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, got)
 		})
