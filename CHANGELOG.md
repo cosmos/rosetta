@@ -48,7 +48,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* [#100](https://github.com/cosmos/rosetta/pull/100) Update to cosmos-sdk v0.50.5
+* [#93](https://github.com/cosmos/rosetta/pull/93): Remove the use of sdk LegacyMsg
+* [#99](https://github.com/cosmos/rosetta/pull/99): connect over https
+* [#101](https://github.com/cosmos/rosetta/pull/101) Update to cosmos-sdk v0.50.5
 
 ## [v0.50.4](https://github.com/cosmos/rosetta/releases/tag/v0.50.4) 2024-02-26
 
