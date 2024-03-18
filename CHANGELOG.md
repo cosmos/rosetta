@@ -44,6 +44,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [93](https://github.com/cosmos/rosetta/pull/93) Removes the use of `LegacyMsg.GetSigners()` in favor of `codec.GetMsgV1Signers`.
 
+## [v0.50.5](https://github.com/cosmos/rosetta/releases/tag/v0.50.5) 2024-03-18
+
+### Improvements
+
+* [#100](https://github.com/cosmos/rosetta/pull/100) Update to cosmos-sdk v0.50.5
+
 ## [v0.50.4](https://github.com/cosmos/rosetta/releases/tag/v0.50.4) 2024-02-26
 
 ### Improvements
