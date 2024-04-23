@@ -12,7 +12,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.50.6
 	github.com/cosmos/gogoproto v1.4.12
 	github.com/cosmos/rosetta-sdk-go v0.10.0
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/goware/urlx v0.3.2
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
