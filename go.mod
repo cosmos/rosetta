@@ -1,4 +1,4 @@
-module github.com/cosmos/rosetta
+module github.com/sedaprotocol/rosetta-seda
 
 go 1.21
 
