@@ -539,7 +539,7 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 	finalTxs := make([]*rosettatypes.Transaction, 0, 2+len(deliverTx))
 	finalTxs = append(finalTxs, beginBlockTx)
 	finalTxs = append(finalTxs, deliverTx...)
-	finalTxs = append(finalTxs, endBlockTx)
+	// finalTxs = append(finalTxs, endBlockTx)
 
 	return crgtypes.BlockTransactionsResponse{
 		BlockResponse: c.converter.ToRosetta().BlockResponse(blockInfo),
