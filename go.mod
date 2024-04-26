@@ -1,4 +1,4 @@
-module github.com/sedaprotocol/rosetta-seda
+module github.com/cosmos/rosetta
 
 go 1.21
 
@@ -11,7 +11,6 @@ require (
 	github.com/cometbft/cometbft v0.38.5
 	github.com/cosmos/cosmos-sdk v0.50.5
 	github.com/cosmos/gogoproto v1.4.11
-	github.com/cosmos/rosetta v0.0.0-00010101000000-000000000000
 	github.com/cosmos/rosetta-sdk-go v0.10.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/goware/urlx v0.3.2
@@ -155,5 +154,3 @@ require (
 	pgregory.net/rapid v1.1.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-
-replace github.com/cosmos/rosetta => github.com/sedaprotocol/rosetta-seda v0.0.0-20240425222336-3347140e4d26
