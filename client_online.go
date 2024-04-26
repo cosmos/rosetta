@@ -518,13 +518,13 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 		),
 	}
 
-	endBlockTx := &rosettatypes.Transaction{
-		TransactionIdentifier: &rosettatypes.TransactionIdentifier{Hash: c.converter.ToRosetta().EndBlockTxHash(blockInfo.BlockID.Hash)},
-		Operations: AddOperationIndexes(
-			nil,
-			c.converter.ToRosetta().BalanceOps(StatusTxSuccess, blockResults.FinalizeBlockEvents),
-		),
-	}
+	// endBlockTx := &rosettatypes.Transaction{
+	// 	TransactionIdentifier: &rosettatypes.TransactionIdentifier{Hash: c.converter.ToRosetta().EndBlockTxHash(blockInfo.BlockID.Hash)},
+	// 	Operations: AddOperationIndexes(
+	// 		nil,
+	// 		c.converter.ToRosetta().BalanceOps(StatusTxSuccess, blockResults.FinalizeBlockEvents),
+	// 	),
+	// }
 
 	deliverTx := make([]*rosettatypes.Transaction, len(blockInfo.Block.Txs))
 	// process normal txs
