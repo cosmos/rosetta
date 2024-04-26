@@ -402,7 +402,7 @@ func sdkEventToBalanceOperations(status string, event abci.Event) (operations []
 				Value: value,
 				Currency: &rosettatypes.Currency{
 					Symbol:   coin.Denom,
-					Decimals: 18,
+					Decimals: 0,
 				},
 			},
 		}
