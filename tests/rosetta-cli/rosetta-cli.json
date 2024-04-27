@@ -1,14 +1,14 @@
 {
   "network": {
-    "blockchain": "cosmos",
-    "network": "cosmos"
+    "blockchain": "seda-chain",
+    "network": "seda-1"
   },
   "online_url":"http://localhost:8080",
   "data_directory":"",
   "http_timeout":10,
   "max_retries":5,
-  "retry_elapsed_time":0,
-  "max_online_connections":120,
+  "retry_elapsed_time":1,
+  "max_online_connections":10,
   "max_sync_concurrency":64,
   "tip_delay":300,
   "max_reorg_depth":100,
@@ -32,7 +32,7 @@
     "results_output_file":"",
     "initial_balance_fetch_disabled":false,
     "end_conditions": {
-      "index": 30
+      "index": 25000
     }
   },
   "construction":null
