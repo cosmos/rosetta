@@ -1,6 +1,6 @@
 {
   "network": {
-    "blockchain": "seda-chain",
+    "blockchain": "seda",
     "network": "seda-1"
   },
   "online_url":"http://localhost:8080",
