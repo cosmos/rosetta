@@ -185,8 +185,7 @@ func (s *ConverterTestSuite) TestBeginEndBlockAndHashToTxType() {
 	deliverTxBytes, err := hex.DecodeString(deliverTxHex)
 	s.Require().NoError(err)
 
-	endBlockTxHex := s.c.ToRosetta().EndBlockTxHash(deliverTxBytes)
-	beginBlockTxHex := s.c.ToRosetta().BeginBlockTxHash(deliverTxBytes)
+	endBlockTxHex := s.c.ToRosetta().FinalizeBlockTxHash(deliverTxBytes)
 
 	txType, hash := s.c.ToSDK().HashToTxType(deliverTxBytes)
 
@@ -197,17 +196,8 @@ func (s *ConverterTestSuite) TestBeginEndBlockAndHashToTxType() {
 	s.Require().NoError(err)
 
 	txType, hash = s.c.ToSDK().HashToTxType(endBlockTxBytes)
-
-	s.Require().Equal(rosetta.EndBlockTx, txType)
+	s.Require().Equal(rosetta.FinalizeBlockTx, txType)
 	s.Require().Equal(deliverTxBytes, hash, "end block tx hash should be equal to a block hash")
-
-	beginBlockTxBytes, err := hex.DecodeString(beginBlockTxHex)
-	s.Require().NoError(err)
-
-	txType, hash = s.c.ToSDK().HashToTxType(beginBlockTxBytes)
-
-	s.Require().Equal(rosetta.BeginBlockTx, txType)
-	s.Require().Equal(deliverTxBytes, hash, "begin block tx hash should be equal to a block hash")
 
 	txType, hash = s.c.ToSDK().HashToTxType([]byte("invalid"))
 
