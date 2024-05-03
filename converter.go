@@ -473,8 +473,8 @@ func AddOperationIndexes(msgOps, balanceOps []*rosettatypes.Operation) (finalOps
 }
 
 // FinalizeBlockTxHash produces a mock beginblock hash that rosetta can query
-// for beginblock operations, it also serves the purpose of representing
-// part of the state changes happening at beginblock level (balance ones)
+// for finalizeBlock operations, it also serves the purpose of representing
+// part of the state changes happening at finalizeblock level (balance ones)
 func (c converter) FinalizeBlockTxHash(hash []byte) string {
 	final := append([]byte{FinalizeBlockHashStart}, hash...)
 	return fmt.Sprintf("%X", final)

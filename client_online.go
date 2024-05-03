@@ -496,7 +496,7 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 		return crgtypes.BlockTransactionsResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, "block results transactions do now match block transactions")
 	}
 	// process begin and end block txs
-	FinalizeBlockTx := &rosettatypes.Transaction{
+	finalizeBlockTx := &rosettatypes.Transaction{
 		TransactionIdentifier: &rosettatypes.TransactionIdentifier{Hash: c.converter.ToRosetta().FinalizeBlockTxHash(blockInfo.BlockID.Hash)},
 		Operations: AddOperationIndexes(
 			nil,
@@ -516,7 +516,7 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 
 	finalTxs := make([]*rosettatypes.Transaction, 0, 1+len(deliverTx))
 	finalTxs = append(finalTxs, deliverTx...)
-	finalTxs = append(finalTxs, FinalizeBlockTx)
+	finalTxs = append(finalTxs, finalizeBlockTx)
 
 	return crgtypes.BlockTransactionsResponse{
 		BlockResponse: c.converter.ToRosetta().BlockResponse(blockInfo),
