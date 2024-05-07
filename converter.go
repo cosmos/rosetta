@@ -54,9 +54,7 @@ type ToRosettaConverter interface {
 	// BlockResponse returns a block response given a result block
 	BlockResponse(block *tmcoretypes.ResultBlock) crgtypes.BlockResponse
 	// BeginBlockToTx converts the given begin block hash to rosetta transaction hash
-	BeginBlockTxHash(blockHash []byte) string
-	// EndBlockTxHash converts the given endblock hash to rosetta transaction hash
-	EndBlockTxHash(blockHash []byte) string
+	FinalizeBlockTxHash(blockHash []byte) string
 	// Amounts converts sdk.Coins to rosetta.Amounts
 	Amounts(ownedCoins []sdk.Coin, availableCoins sdk.Coins) []*rosettatypes.Amount
 	// Ops converts an sdk.Msg to rosetta operations
@@ -474,35 +472,25 @@ func AddOperationIndexes(msgOps, balanceOps []*rosettatypes.Operation) (finalOps
 	return finalOps
 }
 
-// EndBlockTxHash produces a mock endblock hash that rosetta can query
-// for endblock operations, it also serves the purpose of representing
-// part of the state changes happening at endblock level (balance ones)
-func (c converter) EndBlockTxHash(hash []byte) string {
-	final := append([]byte{EndBlockHashStart}, hash...)
-	return fmt.Sprintf("%X", final)
-}
-
-// BeginBlockTxHash produces a mock beginblock hash that rosetta can query
-// for beginblock operations, it also serves the purpose of representing
-// part of the state changes happening at beginblock level (balance ones)
-func (c converter) BeginBlockTxHash(hash []byte) string {
-	final := append([]byte{BeginBlockHashStart}, hash...)
+// FinalizeBlockTxHash produces a mock beginblock hash that rosetta can query
+// for finalizeBlock operations, it also serves the purpose of representing
+// part of the state changes happening at finalizeblock level (balance ones)
+func (c converter) FinalizeBlockTxHash(hash []byte) string {
+	final := append([]byte{FinalizeBlockHashStart}, hash...)
 	return fmt.Sprintf("%X", final)
 }
 
 // HashToTxType takes the provided hash bytes from rosetta and discerns if they are
-// a deliver tx type or endblock/begin block hash, returning the real hash afterwards
+// a deliver tx type or finalize block hash, returning the real hash afterward
 func (c converter) HashToTxType(hashBytes []byte) (txType TransactionType, realHash []byte) {
 	switch len(hashBytes) {
 	case DeliverTxSize:
 		return DeliverTxTx, hashBytes
 
-	case BeginEndBlockTxSize:
+	case FinalizeBlockTxSize:
 		switch hashBytes[0] {
-		case BeginBlockHashStart:
-			return BeginBlockTx, hashBytes[1:]
-		case EndBlockHashStart:
-			return EndBlockTx, hashBytes[1:]
+		case FinalizeBlockHashStart:
+			return FinalizeBlockHashStart, hashBytes[1:]
 		default:
 			return UnrecognizedTx, nil
 		}
