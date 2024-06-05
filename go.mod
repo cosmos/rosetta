@@ -3,13 +3,13 @@ module github.com/cosmos/rosetta
 go 1.21
 
 require (
-	cosmossdk.io/api v0.7.4
+	cosmossdk.io/api v0.7.5
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/math v1.3.0
-	cosmossdk.io/x/tx v0.13.2
+	cosmossdk.io/x/tx v0.13.3
 	github.com/coinbase/rosetta-sdk-go/types v1.0.0
-	github.com/cometbft/cometbft v0.38.6
-	github.com/cosmos/cosmos-sdk v0.50.6
+	github.com/cometbft/cometbft v0.38.7
+	github.com/cosmos/cosmos-sdk v0.50.7
 	github.com/cosmos/gogoproto v1.4.12
 	github.com/cosmos/rosetta-sdk-go v0.10.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
