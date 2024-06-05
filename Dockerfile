@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Build gaia
 # ------------------------------------------------------------------------------
-FROM golang:1.20 AS cosmos
+FROM golang:1.22 AS cosmos
 
 ARG COSMOS_VERSION
 
@@ -10,13 +10,13 @@ RUN git clone https://github.com/cosmos/cosmos-sdk \
 
 WORKDIR /go/src/github.com/cosmos/cosmos-sdk
 
-RUN git checkout v0.50.2 && make build
+RUN git checkout v0.50.7 && make build
 RUN export SIMD_BIN=/go/src/github.com/cosmos/cosmos-sdk/build/simd && make init-simapp
 
 # ------------------------------------------------------------------------------
 # Build rosetta
 # ------------------------------------------------------------------------------
-FROM golang:1.21.5 AS rosetta
+FROM golang:1.22 AS rosetta
 
 ARG ROSETTA_VERSION
 
