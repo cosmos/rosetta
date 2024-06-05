@@ -36,15 +36,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-### Bug Fixes
-
-* [123](https://github.com/cosmos/rosetta/pull/123) Correctly parse cometBFT finalize block.
-
 ## [v0.50.7](https://github.com/cosmos/rosetta/releases/tag/v0.50.7) 2024-06-05
 
 ### Improvements
 
 * [128](https://github.com/cosmos/rosetta/pull/128) Update cosmos-sdk to v0.50.7
+
+### Bug Fixes
+
+* [123](https://github.com/cosmos/rosetta/pull/123) Correctly parse cometBFT finalize block.
 
 ## [v0.50.6](https://github.com/cosmos/rosetta/releases/tag/v0.50.6) 2024-04-23
 
