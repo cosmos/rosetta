@@ -36,6 +36,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.50.8](https://github.com/cosmos/rosetta/releases/tag/v0.50.8) 2024-07-15
+
+### Improvements
+
+* [138](https://github.com/cosmos/rosetta/pull/138) Update cosmos-sdk to v0.50.8
+
 ## [v0.50.7](https://github.com/cosmos/rosetta/releases/tag/v0.50.7) 2024-06-05
 
 ### Improvements
@@ -81,6 +87,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * [#82](https://github.com/cosmos/rosetta/pull/82) Fix cosmossdk.io/core dependencies.
+
 ## [v0.50.2](https://github.com/cosmos/rosetta/releases/tag/v0.50.2) 2023-12-12
 
 ### Improvements
@@ -89,7 +96,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [#37](https://github.com/cosmos/rosetta/pull/37) Dockerization of Rosetta.
 * [#29](https://github.com/cosmos/rosetta/pull/29) Improvements on error handling.
 
-## v0.47.x 
+## v0.47.x
 
 * Migrated rosetta from cosmos-sdk repository to the standalone [repo](https://github.com/cosmos/rosetta).
 
