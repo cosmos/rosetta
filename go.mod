@@ -6,7 +6,7 @@ require (
 	cosmossdk.io/api v0.7.5
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/math v1.3.0
-	cosmossdk.io/x/tx v0.13.3
+	cosmossdk.io/x/tx v0.13.4
 	github.com/coinbase/rosetta-sdk-go/types v1.0.0
 	github.com/cometbft/cometbft v0.38.9
 	github.com/cosmos/cosmos-sdk v0.50.8
