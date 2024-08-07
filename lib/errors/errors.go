@@ -4,14 +4,14 @@ package errors
 // plus some extra utilities to parse those errors
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
-	grpccodes "google.golang.org/grpc/codes"
-	grpcstatus "google.golang.org/grpc/status"
-
 	"github.com/coinbase/rosetta-sdk-go/types"
 	cmttypes "github.com/cometbft/cometbft/rpc/jsonrpc/types"
+	grpccodes "google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 )
 
 // ListErrors lists all the registered errors
@@ -70,9 +70,11 @@ func WrapError(err *Error, msg string) *Error {
 // error, if the error cannot be converted it will be parsed as unknown
 func ToRosetta(err error) *types.Error {
 	// if it's null or not known
-	rosErr, ok := err.(*Error)
+	var rosErr *Error
+	ok := errors.As(err, &rosErr)
 	if rosErr == nil || !ok {
-		tmErr, ok := err.(*cmttypes.RPCError)
+		var tmErr *cmttypes.RPCError
+		ok := errors.As(err, &tmErr)
 		if tmErr != nil && ok {
 			return fromCometToRosettaError(tmErr).rosErr
 		}

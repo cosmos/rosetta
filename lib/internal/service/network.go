@@ -4,6 +4,7 @@ import (
 	"context"
 
 	coinbase "github.com/coinbase/rosetta-sdk-go/types"
+
 	"github.com/cosmos/rosetta/lib/errors"
 )
 
