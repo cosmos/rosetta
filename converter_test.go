@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/cosmos/rosetta"
-	crgerrs "github.com/cosmos/rosetta/lib/errors"
-
 	rosettatypes "github.com/coinbase/rosetta-sdk-go/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/suite"
@@ -19,6 +16,9 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/cosmos/rosetta"
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
 )
 
 type ConverterTestSuite struct {

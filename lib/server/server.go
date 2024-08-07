@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/coinbase/rosetta-sdk-go/types"
-	assert "github.com/cosmos/rosetta-sdk-go/asserter"
-	"github.com/cosmos/rosetta-sdk-go/server"
 
 	"cosmossdk.io/log"
+
+	assert "github.com/cosmos/rosetta-sdk-go/asserter"
+	"github.com/cosmos/rosetta-sdk-go/server"
 	"github.com/cosmos/rosetta/lib/internal/service"
 	crgtypes "github.com/cosmos/rosetta/lib/types"
 )

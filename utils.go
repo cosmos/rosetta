@@ -6,14 +6,15 @@ import (
 	"strconv"
 	"time"
 
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
 	txv1beta1 "cosmossdk.io/api/cosmos/tx/v1beta1"
 	signing2 "cosmossdk.io/x/tx/signing"
-	"google.golang.org/protobuf/types/known/anypb"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+
 	crgerrs "github.com/cosmos/rosetta/lib/errors"
 )
 

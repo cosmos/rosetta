@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/cosmos/rosetta"
-
 	"cosmossdk.io/log"
+
+	"github.com/cosmos/rosetta"
 	rosettaCmd "github.com/cosmos/rosetta/cmd"
 )
 
