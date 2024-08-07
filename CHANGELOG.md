@@ -36,6 +36,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.50.9](https://github.com/cosmos/rosetta/releases/tag/v0.50.9) 2024-08-07
+
+### Improvements
+
+* [141](https://github.com/cosmos/rosetta/pull/141) Update cosmos-sdk to v0.50.9
+
 ## [v0.50.8](https://github.com/cosmos/rosetta/releases/tag/v0.50.8) 2024-07-15
 
 ### Improvements
