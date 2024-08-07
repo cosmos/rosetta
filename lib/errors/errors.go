@@ -41,7 +41,8 @@ func (e *Error) Error() string {
 // if their error codes are identical
 func (e *Error) Is(err error) bool {
 	// assert it can be casted
-	rosErr, ok := err.(*Error)
+	var rosErr *Error
+	ok := errors.As(err, &rosErr)
 	if rosErr == nil || !ok {
 		return false
 	}
