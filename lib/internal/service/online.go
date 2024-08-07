@@ -7,6 +7,7 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 
 	"cosmossdk.io/log"
+
 	crgerrs "github.com/cosmos/rosetta/lib/errors"
 	crgtypes "github.com/cosmos/rosetta/lib/types"
 )

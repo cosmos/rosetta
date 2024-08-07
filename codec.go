@@ -1,7 +1,10 @@
 package rosetta
 
 import (
+	"github.com/cosmos/gogoproto/proto"
+
 	"cosmossdk.io/x/tx/signing"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -10,7 +13,6 @@ import (
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankcodec "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 // MakeCodec generates the codec required to interact

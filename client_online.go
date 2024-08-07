@@ -10,28 +10,24 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/version"
-
-	abcitypes "github.com/cometbft/cometbft/abci/types"
-
 	rosettatypes "github.com/coinbase/rosetta-sdk-go/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	tmrpc "github.com/cometbft/cometbft/rpc/client"
+	"github.com/cometbft/cometbft/rpc/client/http"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/cometbft/cometbft/rpc/client/http"
-	"google.golang.org/grpc"
-
-	crgerrs "github.com/cosmos/rosetta/lib/errors"
-	crgtypes "github.com/cosmos/rosetta/lib/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
+	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/cosmos/cosmos-sdk/version"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	tmrpc "github.com/cometbft/cometbft/rpc/client"
-	"github.com/cosmos/cosmos-sdk/types/query"
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
+	crgtypes "github.com/cosmos/rosetta/lib/types"
 )
 
 // interface assertion

@@ -4,18 +4,17 @@ import (
 	"fmt"
 	"time"
 
-	crgerrs "github.com/cosmos/rosetta/lib/errors"
-
 	"github.com/coinbase/rosetta-sdk-go/types"
 	url "github.com/goware/urlx"
 	"github.com/spf13/pflag"
-
-	crg "github.com/cosmos/rosetta/lib/server"
 
 	clientflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
+	crg "github.com/cosmos/rosetta/lib/server"
 )
 
 const (

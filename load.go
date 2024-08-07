@@ -4,20 +4,22 @@ package rosetta
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
 
-	crgerrs "github.com/cosmos/rosetta/lib/errors"
-
-	reflectionv1beta1 "cosmossdk.io/api/cosmos/base/reflection/v1beta1"
-
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
+
+	reflectionv1beta1 "cosmossdk.io/api/cosmos/base/reflection/v1beta1"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
+	crgerrs "github.com/cosmos/rosetta/lib/errors"
 )
 
 func ReflectInterfaces(ir codectypes.InterfaceRegistry, endpoint string) (err error) {
@@ -71,7 +73,7 @@ func getFileDescriptorSet(c context.Context, client *grpc.ClientConn) (fdSet *de
 	go func() {
 		for {
 			in, err := reflectClient.Recv()
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				close(wait)
 				return
 			}
