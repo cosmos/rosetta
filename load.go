@@ -47,7 +47,7 @@ func openClient(endpoint string) (client *grpc.ClientConn, err error) {
 		MinVersion: tls.VersionTLS12,
 	})
 
-	client, err = grpc.Dial(endpoint, grpc.WithTransportCredentials(tlsCredentials))
+	client, err = grpc.NewClient(endpoint, grpc.WithTransportCredentials(tlsCredentials))
 	if err != nil {
 		return nil, crgerrs.WrapError(crgerrs.ErrClient, fmt.Sprintf("getting grpc client connection %s", err.Error()))
 	}
