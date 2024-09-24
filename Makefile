@@ -28,15 +28,26 @@ test-rosetta-ci:
 ###                                Linting                                  ###
 ###############################################################################
 
-golangci_lint_cmd=golangci-lint
-golangci_version=v1.51.2
+golangci_version=v1.61.0
+golangci_installed_version=$(shell golangci-lint version --format short 2>/dev/null)
+
+#? lint-install: Install golangci-lint
+lint-install:
+ifneq ($(golangci_installed_version),$(golangci_version))
+	@echo "--> Installing golangci-lint $(golangci_version)"
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version)
+endif
+
+#? lint: Run golangci-lint
 lint:
 	@echo "--> Running linter"
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version)
+	$(MAKE) lint-install
 	@./scripts/go-lint-all.bash --timeout=15m
+
+#? lint: Run golangci-lint and fix
 lint-fix:
 	@echo "--> Running linter"
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version)
+	$(MAKE) lint-install
 	@./scripts/go-lint-all.bash --fix
 
 .PHONY: all build rosetta test lint lint-fix
