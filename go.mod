@@ -3,7 +3,7 @@ module github.com/cosmos/rosetta
 go 1.22.2
 
 require (
-	cosmossdk.io/api v0.7.5
+	cosmossdk.io/api v0.7.6
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/x/tx v0.13.5
