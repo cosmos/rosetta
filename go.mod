@@ -1,6 +1,6 @@
 module github.com/cosmos/rosetta
 
-go 1.23.1
+go 1.22.2
 
 require (
 	cosmossdk.io/api v0.7.5
