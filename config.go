@@ -49,8 +49,6 @@ const (
 	DenomToSuggest = "uatom"
 	// DefaultPrices defines the default list of prices to suggest
 	DefaultPrices = "1uatom,1stake"
-	// DefaultPlugin define plugin location for interface and type registry
-	DefaultPlugin = "cosmos-hub"
 )
 
 // configuration flags
