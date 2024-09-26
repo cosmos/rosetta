@@ -11,6 +11,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -43,11 +44,15 @@ func ReflectInterfaces(ir codectypes.InterfaceRegistry, endpoint string) (err er
 }
 
 func openClient(endpoint string) (client *grpc.ClientConn, err error) {
-	tlsCredentials := credentials.NewTLS(&tls.Config{
-		MinVersion: tls.VersionTLS12,
-	})
+	creds := insecure.NewCredentials()
+	if strings.HasPrefix(endpoint, "https://") {
+		tlsConfig := &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+		creds = credentials.NewTLS(tlsConfig)
+	}
 
-	client, err = grpc.NewClient(endpoint, grpc.WithTransportCredentials(tlsCredentials))
+	client, err = grpc.NewClient(endpoint, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		return nil, crgerrs.WrapError(crgerrs.ErrClient, fmt.Sprintf("getting grpc client connection %s", err.Error()))
 	}
@@ -170,7 +175,7 @@ func cleanImplMsgNames(implMessages []string) (cleanImplMessages []string) {
 }
 
 func registerProtoInterface(registry codectypes.InterfaceRegistry, fileDescriptor *descriptorpb.FileDescriptorProto) {
-	name := "/" + strings.ReplaceAll(fileDescriptor.GetName(), "/", ".")
+	name := strings.ReplaceAll(fileDescriptor.GetName(), "/", ".")
 	descriptorMessageInterface := fileDescriptor.ProtoReflect().Interface()
 	registry.RegisterInterface(name, &descriptorMessageInterface)
 }
