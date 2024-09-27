@@ -49,8 +49,6 @@ const (
 	DenomToSuggest = "uatom"
 	// DefaultPrices defines the default list of prices to suggest
 	DefaultPrices = "1uatom,1stake"
-	// DefaultPlugin define plugin location for interface and type registry
-	DefaultPlugin = "cosmos-hub"
 )
 
 // configuration flags
@@ -306,5 +304,5 @@ func SetFlags(flags *pflag.FlagSet) {
 	flags.Int(FlagGasToSuggest, clientflags.DefaultGasLimit, "default gas for fee suggestion")
 	flags.String(FlagDenomToSuggest, DenomToSuggest, "default denom for fee suggestion")
 	flags.String(FlagPricesToSuggest, DefaultPrices, "default prices for fee suggestion")
-	flags.String(FlagPlugin, DefaultPlugin, "plugin folder name")
+	flags.String(FlagPlugin, "", "plugin folder name")
 }

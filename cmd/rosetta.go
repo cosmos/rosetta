@@ -29,16 +29,18 @@ func RosettaCommand(ir codectypes.InterfaceRegistry, cdc codec.Codec) *cobra.Com
 			}
 			conf.WithCodec(ir, protoCodec)
 
-			err = rosetta.LoadPlugin(ir, cmd.Flag("plugin").Value.String())
-			if err != nil {
-				fmt.Printf("[Rosetta]- Error while loading cosmos-hub plugin: %s", err.Error())
-				return err
-			}
-
-			if cmd.Flag("grpc-types-server").Value.String() != "" {
-				err = rosetta.ReflectInterfaces(ir, cmd.Flag("grpc-types-server").Value.String())
+			pluginPath := cmd.Flag(rosetta.FlagPlugin).Value.String()
+			typesServer := cmd.Flag(rosetta.FlagGRPCTypesServerEndpoint).Value.String()
+			if pluginPath != "" {
+				err = rosetta.LoadPlugin(ir, pluginPath)
 				if err != nil {
-					fmt.Printf("[Rosetta]- Error while reflecting from grpc server: %s", err.Error())
+					fmt.Printf("[Rosetta]- Error while loading plugin: %s", err.Error())
+					return err
+				}
+			} else if typesServer != "" {
+				err = rosetta.ReflectInterfaces(ir, typesServer)
+				if err != nil {
+					fmt.Printf("[Rosetta]- Error while reflecting from gRPC server: %s", err.Error())
 					return err
 				}
 			}

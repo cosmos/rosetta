@@ -36,6 +36,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Improvements
+
+* [#157](https://github.com/cosmos/rosetta/pull/157) Rosetta can now run without requiring a plugin.
+
+### Bug Fixes
+
+* [#157](https://github.com/cosmos/rosetta/pull/157) Added support for insecure connections to gRPC reflection servers.
+
 ## [v0.50.10](https://github.com/cosmos/rosetta/releases/tag/v0.50.10) 2024-09-25
 
 ### Improvements
