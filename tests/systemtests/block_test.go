@@ -11,7 +11,7 @@ import (
 	"cosmossdk.io/tests/systemtests"
 )
 
-func TestSendTx(t *testing.T) {
+func TestBlock(t *testing.T) {
 	sut.ResetChain(t)
 
 	cli := systemtests.NewCLIWrapper(t, sut, verbose)
