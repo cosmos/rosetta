@@ -3,7 +3,8 @@
 all: build plugin
 
 build:
-	go build -mod=readonly ./cmd/rosetta
+	mkdir -p ./build
+	go build -mod=readonly -o ./build/rosetta ./cmd/rosetta
 
 plugin:
 	cd plugins/cosmos-hub && make plugin
@@ -16,6 +17,17 @@ docker:
 
 test:
 	go test -mod=readonly -timeout 30m -coverprofile=coverage.out -covermode=atomic ./...
+
+.PHONY: test-system
+test-system: build
+	mkdir -p ./tests/systemtests/binaries/
+	git clone https://github.com/cosmos/cosmos-sdk.git ./build/tmp/cosmos-sdk
+	cd ./build/tmp/cosmos-sdk && git checkout `grep -m 1 'github.com/cosmos/cosmos-sdk' ../../../go.mod | awk '{print $$2}'`
+	$(MAKE) -C ./build/tmp/cosmos-sdk build
+	cp ./build/tmp/cosmos-sdk/build/simd$(if $(findstring v2,$(COSMOS_BUILD_OPTIONS)),v2) ./tests/systemtests/binaries/
+	cp ./build/rosetta ./tests/systemtests/binaries/
+	#$(MAKE) -C tests/systemtests test
+	rm -rf ./build/tmp
 
 test-rosetta-ci:
 	sh ./scripts/simapp-start-node.sh
