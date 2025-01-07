@@ -3,19 +3,20 @@ package rosetta_test
 import (
 	"encoding/hex"
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/codec/address"
 	"testing"
 
 	rosettatypes "github.com/coinbase/rosetta-sdk-go/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/suite"
 
+	bank "cosmossdk.io/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/rosetta"
 	crgerrs "github.com/cosmos/rosetta/lib/errors"
@@ -41,7 +42,7 @@ func (s *ConverterTestSuite) SetupTest() {
 	s.unsignedTxBytes = unsignedTxBytes
 	// instantiate converter
 	cdc, ir := rosetta.MakeCodec()
-	txConfig := authtx.NewTxConfig(cdc, authtx.DefaultSignModes)
+	txConfig := authtx.NewTxConfig(cdc, address.NewBech32Codec("cosmos"), address.NewBech32Codec("cosmosvaloper"), authtx.DefaultSignModes)
 	s.c = rosetta.NewConverter(cdc, ir, txConfig)
 	// add utils
 	s.ir = ir
@@ -288,14 +289,16 @@ func (s *ConverterTestSuite) TestBalanceOps() {
 
 	// TODO - Investigate / fix sdk update discrepancies
 	s.Run("multiple balance ops from 2 multicoins event", func() {
-		subBalanceOp := bank.NewCoinSpentEvent(
-			sdk.AccAddress("test"),
-			sdk.NewCoins(sdk.NewInt64Coin("test", 10), sdk.NewInt64Coin("utxo", 10)),
+		subBalanceOp := sdk.NewEvent(
+			bank.EventTypeCoinSpent,
+			sdk.NewAttribute(bank.AttributeKeySpender, sdk.AccAddress("test").String()), // TODO remove string address
+			sdk.NewAttribute(sdk.AttributeKeyAmount, sdk.NewCoins(sdk.NewInt64Coin("test", 10), sdk.NewInt64Coin("utxo", 10)).String()),
 		)
 
-		addBalanceOp := bank.NewCoinReceivedEvent(
-			sdk.AccAddress("test"),
-			sdk.NewCoins(sdk.NewInt64Coin("test", 10), sdk.NewInt64Coin("utxo", 10)),
+		addBalanceOp := sdk.NewEvent(
+			bank.EventTypeCoinReceived,
+			sdk.NewAttribute(bank.AttributeKeyReceiver, sdk.AccAddress("test").String()), // TODO: remove string address
+			sdk.NewAttribute(sdk.AttributeKeyAmount, sdk.NewCoins(sdk.NewInt64Coin("test", 10), sdk.NewInt64Coin("utxo", 10)).String()),
 		)
 
 		ops := s.c.ToRosetta().BalanceOps("", []abci.Event{(abci.Event)(subBalanceOp), (abci.Event)(addBalanceOp)})

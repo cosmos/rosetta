@@ -66,6 +66,7 @@ const (
 	FlagDenomToSuggest          = "denom-to-suggest"
 	FlagPricesToSuggest         = "prices-to-suggest"
 	FlagPlugin                  = "plugin"
+	FlagBech32Prefix            = "bech32-prefix"
 )
 
 // Config defines the configuration of the rosetta server
@@ -102,6 +103,8 @@ type Config struct {
 	Codec *codec.ProtoCodec
 	// InterfaceRegistry overrides the default data and construction api interface registry
 	InterfaceRegistry codectypes.InterfaceRegistry
+	// Bech32Prefix defines the prefix used for bech32 addresses in the network.
+	Bech32Prefix string
 }
 
 // NetworkIdentifier returns the network identifier given the configuration
@@ -234,6 +237,10 @@ func FromFlags(flags *pflag.FlagSet) (*Config, error) {
 	if err != nil {
 		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting denomToSuggest flag %s", err.Error()))
 	}
+	bech32Prefix, err := flags.GetString(FlagBech32Prefix)
+	if err != nil {
+		return nil, crgerrs.WrapError(crgerrs.ErrConfig, fmt.Sprintf("while getting bech32Prefix flag %s", err.Error()))
+	}
 
 	var prices sdk.DecCoins
 	if enableDefaultFeeSuggestion {
@@ -259,6 +266,7 @@ func FromFlags(flags *pflag.FlagSet) (*Config, error) {
 		GasToSuggest:        gasToSuggest,
 		DenomToSuggest:      denomToSuggest,
 		GasPrices:           prices,
+		Bech32Prefix:        bech32Prefix,
 	}
 	err = conf.validate()
 	if err != nil {
@@ -305,4 +313,5 @@ func SetFlags(flags *pflag.FlagSet) {
 	flags.String(FlagDenomToSuggest, DenomToSuggest, "default denom for fee suggestion")
 	flags.String(FlagPricesToSuggest, DefaultPrices, "default prices for fee suggestion")
 	flags.String(FlagPlugin, "", "plugin folder name")
+	flags.String(FlagBech32Prefix, "cosmos", "address bech32 prefix")
 }

@@ -1,11 +1,11 @@
 package main
 
 import (
+	bankTypes "cosmossdk.io/x/bank/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
-	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 func InitZone() {
