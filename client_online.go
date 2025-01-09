@@ -18,13 +18,15 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
+	bank "cosmossdk.io/x/bank/types"
+
+	"github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/version"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
-	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	crgerrs "github.com/cosmos/rosetta/lib/errors"
 	crgtypes "github.com/cosmos/rosetta/lib/types"
@@ -35,7 +37,6 @@ var _ crgtypes.Client = (*Client)(nil)
 
 const (
 	defaultNodeTimeout = time.Minute
-	tmWebsocketPath    = "/websocket"
 )
 
 // Client implements a single network client to interact with cosmos based chains
@@ -61,8 +62,16 @@ func NewClient(cfg *Config) (*Client, error) {
 	if v == "" {
 		v = "unknown"
 	}
+	ac, err := address.NewCachedBech32Codec(cfg.Bech32Prefix, address.CachedCodecOptions{})
+	if err != nil {
+		return nil, err
+	}
+	vc, err := address.NewCachedBech32Codec(sdk.GetBech32PrefixValAddr(cfg.Bech32Prefix), address.CachedCodecOptions{})
+	if err != nil {
+		return nil, err
+	}
 
-	txConfig := authtx.NewTxConfig(cfg.Codec, authtx.DefaultSignModes)
+	txConfig := authtx.NewTxConfig(cfg.Codec, ac, vc, authtx.DefaultSignModes)
 
 	var supportedOperations []string
 	for _, ii := range cfg.InterfaceRegistry.ListImplementations(sdk.MsgInterfaceProtoName) {
@@ -101,7 +110,7 @@ func (c *Client) Bootstrap() error {
 		return crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("dialing grpc endpoint %s", err.Error()))
 	}
 
-	tmRPC, err := http.New(c.config.TendermintRPC, tmWebsocketPath)
+	tmRPC, err := http.New(c.config.TendermintRPC)
 	if err != nil {
 		return crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting rpc path %s", err.Error()))
 	}
@@ -488,7 +497,7 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 		return crgtypes.BlockTransactionsResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting rpc block results %s", err.Error()))
 	}
 
-	if len(blockResults.TxsResults) != len(blockInfo.Block.Txs) {
+	if len(blockResults.TxResults) != len(blockInfo.Block.Txs) {
 		return crgtypes.BlockTransactionsResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, "block results transactions do now match block transactions")
 	}
 	// process begin and end block txs
@@ -503,7 +512,7 @@ func (c *Client) blockTxs(ctx context.Context, height *int64) (crgtypes.BlockTra
 	deliverTx := make([]*rosettatypes.Transaction, len(blockInfo.Block.Txs))
 	// process normal txs
 	for i, tx := range blockInfo.Block.Txs {
-		rosTx, err := c.converter.ToRosetta().Tx(tx, blockResults.TxsResults[i])
+		rosTx, err := c.converter.ToRosetta().Tx(tx, blockResults.TxResults[i])
 		if err != nil {
 			return crgtypes.BlockTransactionsResponse{}, crgerrs.WrapError(crgerrs.ErrOnlineClient, fmt.Sprintf("getting rosetta tx %s", err.Error()))
 		}
