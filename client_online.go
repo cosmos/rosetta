@@ -36,7 +36,6 @@ var _ crgtypes.Client = (*Client)(nil)
 
 const (
 	defaultNodeTimeout = time.Minute
-	//tmWebsocketPath    = "/websocket"
 )
 
 // Client implements a single network client to interact with cosmos based chains
