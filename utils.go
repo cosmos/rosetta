@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
 	txv1beta1 "cosmossdk.io/api/cosmos/tx/v1beta1"
@@ -122,11 +123,12 @@ func parseTxData(tx authsigning.Tx, signerData signing2.SignerData) (*signing2.T
 		return nil, crgerrs.WrapError(crgerrs.ErrCodec, fmt.Sprintf("parsing tx data %s", err.Error()))
 	}
 
+	// todo: timeouthecigh
 	txData := signing2.TxData{
 		Body: &txv1beta1.TxBody{
 			Messages:                    parsedTxMsgs,
 			Memo:                        tx.GetMemo(),
-			TimeoutHeight:               tx.GetTimeoutHeight(),
+			TimeoutTimestamp:            timestamppb.New(tx.GetTimeoutTimeStamp()),
 			ExtensionOptions:            nil,
 			NonCriticalExtensionOptions: nil,
 		},

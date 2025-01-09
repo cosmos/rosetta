@@ -17,6 +17,7 @@ import (
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	sdkmath "cosmossdk.io/math"
+	banktypes "cosmossdk.io/x/bank/types"
 
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -26,7 +27,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	crgerrs "github.com/cosmos/rosetta/lib/errors"
 	crgtypes "github.com/cosmos/rosetta/lib/types"
@@ -161,7 +161,7 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 			return nil, crgerrs.WrapError(crgerrs.ErrCodec, err.Error())
 		}
 
-		signers, _, err := c.cdc.GetMsgV1Signers(msg)
+		signers, _, err := c.cdc.GetMsgSigners(msg)
 		if err != nil {
 			return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting msg signers %s", err.Error()))
 		}
@@ -241,7 +241,7 @@ func (c converter) Ops(status string, msg sdk.Msg) ([]*rosettatypes.Operation, e
 		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting meta from message %s", err.Error()))
 	}
 
-	signers, _, err := c.cdc.GetMsgV1Signers(msg)
+	signers, _, err := c.cdc.GetMsgSigners(msg)
 	if err != nil {
 		return nil, crgerrs.WrapError(crgerrs.ErrConverter, fmt.Sprintf("while getting msg signers in Ops %s", err.Error()))
 	}
