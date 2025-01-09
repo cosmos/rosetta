@@ -19,6 +19,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	bank "cosmossdk.io/x/bank/types"
+
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
@@ -66,6 +67,10 @@ func NewClient(cfg *Config) (*Client, error) {
 		return nil, err
 	}
 	vc, err := address.NewCachedBech32Codec(sdk.GetBech32PrefixValAddr(cfg.Bech32Prefix), address.CachedCodecOptions{})
+	if err != nil {
+		return nil, err
+	}
+
 	txConfig := authtx.NewTxConfig(cfg.Codec, ac, vc, authtx.DefaultSignModes)
 
 	var supportedOperations []string

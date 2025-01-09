@@ -17,8 +17,8 @@ import (
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	sdkmath "cosmossdk.io/math"
-
 	banktypes "cosmossdk.io/x/bank/types"
+
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
