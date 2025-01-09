@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/tests/systemtests"
+	"cosmossdk.io/systemtests"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

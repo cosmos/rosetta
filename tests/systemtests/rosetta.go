@@ -11,13 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
+	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
-	"gopkg.in/resty.v1"
 
-	"cosmossdk.io/tests/systemtests"
+	"cosmossdk.io/systemtests"
 )
 
 var rosetta rosettaRunner

@@ -8,7 +8,7 @@ import (
 	"github.com/tidwall/gjson"
 	"testing"
 
-	"cosmossdk.io/tests/systemtests"
+	"cosmossdk.io/systemtests"
 )
 
 func TestBlock(t *testing.T) {

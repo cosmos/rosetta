@@ -22,7 +22,7 @@ test:
 test-system: build
 	mkdir -p ./tests/systemtests/binaries/
 	git clone https://github.com/cosmos/cosmos-sdk.git ./build/tmp/cosmos-sdk
-	cd ./build/tmp/cosmos-sdk && git checkout `grep -m 1 'github.com/cosmos/cosmos-sdk' ../../../go.mod | awk '{print $$2}'`
+	cd ./build/tmp/cosmos-sdk && git checkout `grep -m 2 'github.com/cosmos/cosmos-sdk' ../../../go.mod | awk 'NR==2 {print $$4; exit} END{if(NR==1) print $$2}'`
 	$(MAKE) -C ./build/tmp/cosmos-sdk build
 	cp ./build/tmp/cosmos-sdk/build/simd$(if $(findstring v2,$(COSMOS_BUILD_OPTIONS)),v2) ./tests/systemtests/binaries/
 	cp ./build/rosetta ./tests/systemtests/binaries/
