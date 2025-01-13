@@ -1,6 +1,8 @@
 package systemtests
 
 import (
+	"bufio"
+	"container/ring"
 	"fmt"
 	"io"
 	"os"
@@ -19,6 +21,8 @@ import (
 	"cosmossdk.io/systemtests"
 )
 
+type cleanUpFn func()
+
 var rosetta rosettaRunner
 
 type rosettaRunner struct {
@@ -34,6 +38,9 @@ type rosettaRunner struct {
 	Offline         bool   // run rosetta only with construction API
 	verbose         bool
 	out             io.Writer
+	outBuff         *ring.Ring
+	errBuff         *ring.Ring
+	cleanupFn       []cleanUpFn
 
 	pid       int
 	outputDir string
@@ -53,6 +60,8 @@ func newRosettaRunner(binary, denom, grpcTypesServer, plugin string, offline, ve
 		Tendermint:      "tcp://localhost:26657",
 		Offline:         offline,
 		out:             os.Stdout,
+		outBuff:         ring.New(100),
+		errBuff:         ring.New(100),
 		verbose:         verbose,
 		pid:             -1,
 		outputDir:       "./testnet",
@@ -73,18 +82,18 @@ func (r *rosettaRunner) start(t *testing.T) {
 	r.log("Start Rosetta\n")
 	r.logf("Execute `%s %s`\n", r.execBinary, strings.Join(args, " "))
 	cmd := exec.Command(locateExecutable(r.execBinary), args...)
+	cmd.Dir = r.outputDir
+	r.watchLogs(cmd)
+
 	require.NoError(t, cmd.Start())
 
 	r.pid = cmd.Process.Pid
-
-	// TODO: save rosetta logs
-	// r.watchLogs(cmd)
 
 	r.awaitRosettaUp(t)
 }
 
 func (r *rosettaRunner) awaitRosettaUp(t *testing.T) {
-	r.log("Waiting for rosetta to start\n")
+	t.Log("Waiting for rosetta to start\n")
 
 	client := resty.New().SetHostURL("http://" + r.Addr)
 	for i := 0; i < 10; i++ {
@@ -94,6 +103,7 @@ func (r *rosettaRunner) awaitRosettaUp(t *testing.T) {
 		if err == nil {
 			bk := gjson.GetBytes(res.Body(), "network_identifiers.#.blockchain").Array()[0].String()
 			require.Equal(t, bk, "testing")
+			t.Log("Rosetta has been started\n")
 			return
 		}
 		time.Sleep(time.Second * 2)
@@ -102,7 +112,7 @@ func (r *rosettaRunner) awaitRosettaUp(t *testing.T) {
 }
 
 func (r *rosettaRunner) restart(t *testing.T) {
-	r.log("Restarting Rosetta\n")
+	t.Log("Restarting Rosetta\n")
 	assert.NoError(t, r.stop())
 
 	r.start(t)
@@ -140,26 +150,37 @@ func (r *rosettaRunner) watchLogs(cmd *exec.Cmd) {
 	if err != nil {
 		panic(fmt.Sprintf("open logfile error %#+v", err))
 	}
+
 	errReader, err := cmd.StderrPipe()
 	if err != nil {
 		panic(fmt.Sprintf("stderr reader error %#+v", err))
 	}
-	_, err = io.Copy(logfile, errReader)
-	if err != nil {
-		panic(fmt.Sprintf("error copying stderr to logfile: %#+v", err))
-	}
+	stopRingBuffer := make(chan struct{})
+	go appendToBuf(io.TeeReader(errReader, logfile), r.errBuff, stopRingBuffer)
 
 	outReader, err := cmd.StdoutPipe()
 	if err != nil {
 		panic(fmt.Sprintf("stdout reader error %#+v", err))
 	}
-	_, err = io.Copy(logfile, outReader)
-	if err != nil {
-		panic(fmt.Sprintf("error copying stdout to logfile: %#+v", err))
-	}
+	go appendToBuf(io.TeeReader(outReader, logfile), r.outBuff, stopRingBuffer)
+	r.cleanupFn = append(r.cleanupFn, func() {
+		close(stopRingBuffer)
+		_ = logfile.Close()
+	})
+}
 
-	// Ensure the logfile is closed when the function exits
-	defer logfile.Close()
+func appendToBuf(r io.Reader, b *ring.Ring, stop <-chan struct{}) {
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		select {
+		case <-stop:
+			return
+		default:
+		}
+		text := scanner.Text()
+		b.Value = text
+		b = b.Next()
+	}
 }
 
 // locateExecutable looks up the binary on the OS path.
