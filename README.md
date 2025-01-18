@@ -54,7 +54,7 @@ An implementation example can be found in `simapp` package.
 
 To run Rosetta in your application CLI, use the following command:
 
-> **Note:** if using the native approach, add your node name before any rosetta comand.
+> **Note:** if using the native approach, add your node name before any rosetta command.
 
 ```shell
 rosetta --help
