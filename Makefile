@@ -26,7 +26,7 @@ test-system: build
 	$(MAKE) -C ./build/tmp/cosmos-sdk build
 	cp ./build/tmp/cosmos-sdk/build/simd$(if $(findstring v2,$(COSMOS_BUILD_OPTIONS)),v2) ./tests/systemtests/binaries/
 	cp ./build/rosetta ./tests/systemtests/binaries/
-	#$(MAKE) -C tests/systemtests test
+	$(MAKE) -C tests/systemtests test
 	rm -rf ./build/tmp
 
 test-rosetta-ci:
