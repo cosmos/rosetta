@@ -3,9 +3,10 @@
 package systemtests
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
-	"testing"
 
 	"cosmossdk.io/systemtests"
 )

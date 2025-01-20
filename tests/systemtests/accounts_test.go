@@ -3,10 +3,12 @@
 package systemtests
 
 import (
-	"cosmossdk.io/systemtests"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
-	"testing"
+
+	"cosmossdk.io/systemtests"
 )
 
 func TestAccounts(t *testing.T) {

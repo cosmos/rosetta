@@ -3,10 +3,10 @@
 package systemtests
 
 import (
-	"github.com/tidwall/gjson"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestMempool(t *testing.T) {

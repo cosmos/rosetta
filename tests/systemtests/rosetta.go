@@ -69,6 +69,7 @@ func newRosettaRunner(binary, denom, grpcTypesServer, plugin string, offline, ve
 }
 
 func (r *rosettaRunner) start(t *testing.T) {
+	t.Helper()
 	args := []string{
 		"--blockchain", r.Blockchain,
 		"--network", r.Network,
@@ -93,9 +94,10 @@ func (r *rosettaRunner) start(t *testing.T) {
 }
 
 func (r *rosettaRunner) awaitRosettaUp(t *testing.T) {
+	t.Helper()
 	t.Log("Waiting for rosetta to start\n")
 
-	client := resty.New().SetHostURL("http://" + r.Addr)
+	client := resty.New().SetBaseURL("http://" + r.Addr)
 	for i := 0; i < 10; i++ {
 		res, err := client.R().SetHeader("Content-Type", "application/json; charset=UTF-8").
 			SetBody("{}").
@@ -112,6 +114,7 @@ func (r *rosettaRunner) awaitRosettaUp(t *testing.T) {
 }
 
 func (r *rosettaRunner) restart(t *testing.T) {
+	t.Helper()
 	t.Log("Restarting Rosetta\n")
 	assert.NoError(t, r.stop())
 

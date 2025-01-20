@@ -14,7 +14,7 @@ type restClient struct {
 
 func newRestClient(rosetta rosettaRunner) *restClient {
 	client := resty.New().
-		SetHostURL("http://" + rosetta.Addr).
+		SetBaseURL("http://" + rosetta.Addr).
 		SetHeaders(map[string]string{"Content-Type": "application/json", "Accept": "application/json"})
 	return &restClient{
 		client:            client,
