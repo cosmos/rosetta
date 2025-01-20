@@ -85,14 +85,12 @@ func (c *restClient) mempool() ([]byte, error) {
 }
 
 func (c *restClient) accountBalance(address string, opts ...func() string) ([]byte, error) {
-	accountIdentifier := fmt.Sprintf(`"account_identifier":{"address": "%s"}`, address)
-
 	bodyOpts := make([]string, len(opts))
 	for i, opt := range opts {
 		bodyOpts[i] = opt()
 	}
 
-	args := []string{c.networkIdentifier, accountIdentifier}
+	args := []string{c.networkIdentifier, fmt.Sprintf(`"account_identifier":{"address": "%s"}`, address)}
 	args = append(args, bodyOpts...)
 	jsonBody := buildBody(args...)
 
@@ -114,4 +112,47 @@ func withBlockIdentifier(height string) func() string {
 
 func buildBody(args ...string) string {
 	return fmt.Sprintf(`{%s}`, strings.Join(args, ","))
+}
+
+func (c *restClient) constructionDerive(hexPk string) ([]byte, error) {
+	res, err := c.client.R().SetBody(
+		fmt.Sprintf(`{%s, %s}`, c.networkIdentifier, publicKeyBody(hexPk, "secp256k1")),
+	).Post("/construction/derive")
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Body(), nil
+}
+
+func publicKeyBody(hexPk, keyType string) string {
+	return fmt.Sprintf(`"public_key":{"hex_bytes":"%s", "curve_type":"%s"}`, hexPk, keyType)
+}
+
+func (c *restClient) constructionHash(hexTx string) ([]byte, error) {
+	res, err := c.client.R().SetBody(
+		fmt.Sprintf(`{%s, "signed_transaction": "%s"}`, c.networkIdentifier, hexTx),
+	).Post("/construction/hash")
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Body(), nil
+}
+
+func (c *restClient) constructionMetadata(hexPk string, options map[string]interface{}) ([]byte, error) {
+	optParts := make([]string, 0, len(options))
+	for k, v := range options {
+		optParts = append(optParts, fmt.Sprintf(`"%s":%v`, k, v))
+	}
+	optionsStr := strings.Join(optParts, ",")
+	body := fmt.Sprintf(`{%s, "options":{%s}, %s}`, c.networkIdentifier, optionsStr, publicKeyBody(hexPk, "secp256k1"))
+	res, err := c.client.R().SetBody(
+		body,
+	).Post("/construction/metadata")
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Body(), nil
 }

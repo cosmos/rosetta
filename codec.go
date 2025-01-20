@@ -31,6 +31,7 @@ func MakeCodec() (*codec.ProtoCodec, codectypes.InterfaceRegistry) {
 	})
 	cdc := codec.NewProtoCodec(ir)
 
+	sdk.RegisterInterfaces(ir)
 	authcodec.RegisterInterfaces(ir)
 	bankcodec.RegisterInterfaces(ir)
 	cryptocodec.RegisterInterfaces(ir)
