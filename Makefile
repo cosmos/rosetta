@@ -32,7 +32,7 @@ test-system: build
 test-rosetta-ci:
 	sh ./scripts/simapp-start-node.sh
 	make build && make plugin
-	./rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090" &
+	./build/rosetta --blockchain "cosmos" --network "cosmos" --tendermint "tcp://localhost:26657" --addr "localhost:8080" --grpc "localhost:9090" &
 	sleep 30
 	export SIMD_BIN=./cosmos-sdk/build/simd && sh ./tests/rosetta-cli/rosetta-cli-test.sh
 
