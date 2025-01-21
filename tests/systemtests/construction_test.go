@@ -48,7 +48,7 @@ func TestHash(t *testing.T) {
 	rosetta.restart(t)
 	rosettaRest := newRestClient(rosetta)
 
-	rsp := cli.RunCommandWithArgs("tx", "bank", "send", fromAddr, toAddr, "10stake", "--generate-only")
+	rsp := cli.RunCommandWithArgs(cli.WithTXFlags("tx", "bank", "send", fromAddr, toAddr, "10stake", "--generate-only")...)
 	tempFile := systemtests.StoreTempFile(t, []byte(rsp))
 	rsp = cli.RunCommandWithArgs(cli.WithTXFlags("tx", "sign", tempFile.Name(), "--from", fromAddr)...)
 	tempFile = systemtests.StoreTempFile(t, []byte(rsp))
