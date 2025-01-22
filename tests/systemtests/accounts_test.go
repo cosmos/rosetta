@@ -22,7 +22,8 @@ func TestAccounts(t *testing.T) {
 	toAddr := cli.AddKey("account2")
 	sut.StartChain(t)
 
-	cli.RunAndWait("tx", "bank", "send", fromAddr, toAddr, "1000000stake")
+	rsp := cli.RunAndWait("tx", "bank", "send", fromAddr, toAddr, "1000000stake")
+	systemtests.RequireTxSuccess(t, rsp)
 
 	rosetta.restart(t)
 	rosettaRest := newRestClient(rosetta)
@@ -31,6 +32,11 @@ func TestAccounts(t *testing.T) {
 	res, err := rosettaRest.accountBalance(fromAddr)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(8999999), gjson.GetBytes(res, "balances.0.value").Int())
+
+	// check recipient's balance after receiving tokens
+	res, err = rosettaRest.accountBalance(toAddr)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1000000), gjson.GetBytes(res, "balances.0.value").Int())
 
 	// check balance at genesis, before spent
 	res, err = rosettaRest.accountBalance(fromAddr, withBlockIdentifier("1"))

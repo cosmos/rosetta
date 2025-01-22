@@ -82,6 +82,7 @@ func (r *rosettaRunner) start(t *testing.T) {
 
 	r.log("Start Rosetta\n")
 	r.logf("Execute `%s %s`\n", r.execBinary, strings.Join(args, " "))
+	// #nosec G204
 	cmd := exec.Command(locateExecutable(r.execBinary), args...)
 	cmd.Dir = r.outputDir
 	r.watchLogs(cmd)
@@ -103,8 +104,9 @@ func (r *rosettaRunner) awaitRosettaUp(t *testing.T) {
 			SetBody("{}").
 			Post("/network/list")
 		if err == nil {
-			bk := gjson.GetBytes(res.Body(), "network_identifiers.#.blockchain").Array()[0].String()
-			require.Equal(t, bk, "testing")
+			result := gjson.GetBytes(res.Body(), "network_identifiers.#.blockchain").Array()
+			assert.Greater(t, len(result), 0)
+			require.Equal(t, result[0].String(), "testing")
 			t.Log("Rosetta has been started\n")
 			return
 		}

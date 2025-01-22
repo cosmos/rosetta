@@ -52,9 +52,6 @@ issues:
     - text: "leading space"
       linters:
         - nolintlint
-    - text: "G204:"
-      linters:
-        - "gosec"
 
   max-issues-per-linter: 10000
   max-same-issues: 10000
