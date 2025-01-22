@@ -123,7 +123,7 @@ func parseTxData(tx authsigning.Tx, signerData signing2.SignerData) (*signing2.T
 		return nil, crgerrs.WrapError(crgerrs.ErrCodec, fmt.Sprintf("parsing tx data %s", err.Error()))
 	}
 
-	// todo: timeouthecigh
+	// todo: timeoutHeigh
 	txData := signing2.TxData{
 		Body: &txv1beta1.TxBody{
 			Messages:                    parsedTxMsgs,

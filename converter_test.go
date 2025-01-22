@@ -44,7 +44,7 @@ func (s *ConverterTestSuite) SetupTest() {
 	// instantiate converter
 	cdc, ir := rosetta.MakeCodec()
 	txConfig := authtx.NewTxConfig(cdc, address.NewBech32Codec("cosmos"), address.NewBech32Codec("cosmosvaloper"), authtx.DefaultSignModes)
-	s.c = rosetta.NewConverter(cdc, ir, txConfig)
+	s.c = rosetta.NewConverter(cdc, ir, txConfig, address.NewBech32Codec("cosmos"))
 	// add utils
 	s.ir = ir
 	s.cdc = cdc
