@@ -82,6 +82,7 @@ func requireEnoughFileHandlers(nodesCount int) {
 		return
 	}
 
+	// #nosec G204
 	cmd := exec.Command(ulimit, "-n")
 	cmd.Dir = systemtests.WorkDir
 	out, err := cmd.CombinedOutput()
