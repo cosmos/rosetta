@@ -3,7 +3,6 @@ package rosetta
 import (
 	"bytes"
 	"context"
-	"cosmossdk.io/core/address"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -17,6 +16,7 @@ import (
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/core/address"
 	sdkmath "cosmossdk.io/math"
 	banktypes "cosmossdk.io/x/bank/types"
 
