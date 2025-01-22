@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Features
+
+* [#189](https://github.com/cosmos/rosetta/pull/189) Add system tests.
+
 ### Improvements
 
 * [180](https://github.com/cosmos/rosetta/pull/180) Update to cosmos-sdk v0.52.0-rc.1.

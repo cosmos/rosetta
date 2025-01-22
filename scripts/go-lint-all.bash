@@ -1,18 +1,50 @@
 #!/usr/bin/env bash
 
-set -eu -o pipefail
+set -e
 
 REPO_ROOT="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 export REPO_ROOT
 
+LINT_TAGS="system_test"
 lint_module() {
   local root="$1"
   shift
-  cd "$(dirname "$root")" &&
-    echo "linting $(grep "^module" go.mod) [$(date -Iseconds -u)]" &&
-    golangci-lint run ./... -c "${REPO_ROOT}/.golangci.yml" "$@"
+  if [ -f $root ]; then
+    cd "$(dirname "$root")"
+  else
+    cd "$REPO_ROOT/$root"
+  fi
+  echo "linting $(grep "^module" go.mod) [$(date -Iseconds -u)]"
+  golangci-lint run ./... -c "${REPO_ROOT}/.golangci.yml" "$@"  --build-tags=${LINT_TAGS}
 }
 export -f lint_module
 
-find "${REPO_ROOT}" -type f -name go.mod -print0 |
-  xargs -0 -I{} bash -c 'lint_module "$@"' _ {} "$@" # Prepend go.mod file before command-line args.
+if [[ -z "${LINT_DIFF:-}" ]]; then
+  find "${REPO_ROOT}" -type f -name go.mod -print0 | xargs -0 -I{} bash -c 'lint_module "$@"' _ {} "$@" --build-tags=${LINT_TAGS}
+else
+  if [[ -z $GIT_DIFF ]]; then
+    GIT_DIFF=$(git diff --name-only) || true
+  fi
+
+  if [[ -z "$GIT_DIFF" ]]; then
+    echo "no files to lint"
+    exit 0
+  fi
+
+  GIT_DIFF=$(echo $GIT_DIFF | tr -d "'" | tr ' ' '\n' | grep '\.go$' | grep -v '\.pb\.go$' | grep -Eo '^[^/]+\/[^/]+' | uniq)
+
+  lint_sdk=false
+  for dir in ${GIT_DIFF[@]}; do
+    if [[ ! -f "$REPO_ROOT/$dir/go.mod" ]]; then
+      lint_sdk=true
+    else
+      lint_module $dir "$@"
+    fi
+  done
+
+  if [[ $lint_sdk ]]; then
+    cd "$REPO_ROOT"
+    echo "linting github.com/cosmos/rosetta [$(date -Iseconds -u)]"
+    golangci-lint run ./... -c "${REPO_ROOT}/.golangci.yml" "$@" --build-tags=${LINT_TAGS}
+  fi
+fi
