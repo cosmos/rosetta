@@ -1,4 +1,4 @@
-package systemtests
+package rossetaSystemTests
 
 import (
 	"fmt"
@@ -155,4 +155,36 @@ func (c *restClient) constructionMetadata(hexPk string, options map[string]inter
 	}
 
 	return res.Body(), nil
+}
+
+func (c *restClient) constructionPayloads(metadata, hexPk string, opts ...operation) ([]byte, error) {
+	body := fmt.Sprintf(
+		`{%s, "operations":%s, "metadata":{%s}, "public_keys":[{"hex_bytes":"%s", "curve_type":"secp256k1"}]}`,
+		c.networkIdentifier, payloadsOperations(opts...), metadata, hexPk)
+	res, err := c.client.R().SetBody(
+		body,
+	).Post("/construction/payloads")
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Body(), nil
+}
+
+type operation struct {
+	msgType  string
+	metadata string
+}
+
+func (o *operation) String() string {
+	return fmt.Sprintf(`"type":"%s", "metadata": %s`, o.msgType, o.metadata)
+}
+
+func payloadsOperations(ops ...operation) []string {
+	r := make([]string, len(ops))
+	for i, op := range ops {
+		r = append(r, fmt.Sprintf(`{"operation_identifier":{"index": %d}, %s}`, i, op.String()))
+	}
+
+	return r
 }
