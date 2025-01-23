@@ -183,7 +183,7 @@ func (o *operation) String() string {
 func payloadsOperations(ops ...operation) []string {
 	r := make([]string, len(ops))
 	for i, op := range ops {
-		r = append(r, fmt.Sprintf(`{"operation_identifier":{"index": %d}, %s}`, i, op.String()))
+		r[i] = fmt.Sprintf(`{"operation_identifier":{"index": %d}, %s}`, i, op.String())
 	}
 
 	return r

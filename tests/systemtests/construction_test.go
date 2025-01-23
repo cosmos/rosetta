@@ -103,7 +103,7 @@ func TestPayloads(t *testing.T) {
 
 	op := operation{
 		msgType:  "/cosmos.bank.v1beta1.MsgSend",
-		metadata: fmt.Sprintf(`{"from_address": "%s", "to_address": "%s", "amount":[{"amount":"123", "denom":"stake"}]}`, addr, "cosmos1qcym25uch54xmja4eys35zcyr8npwlm80glwuk"),
+		metadata: fmt.Sprintf(`{"from_address": "%s", "to_address": "%s", "amount":[{"amount":"123", "denom":"stake"}]}`, addr, cli.AddKey("to_address")),
 	}
 	res, err := rosettaRest.constructionPayloads(`"signer_data":[{"account_number":1, "sequence": 0}]`, hexPk, op)
 	assert.NoError(t, err)

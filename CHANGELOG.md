@@ -45,6 +45,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [180](https://github.com/cosmos/rosetta/pull/180) Update to cosmos-sdk v0.52.0-rc.1.
 * [180](https://github.com/cosmos/rosetta/pull/180) Added bech32 prefix flag.
 
+### Bug Fixes
+
+* [#190](https://github.com/cosmos/rosetta/pull/190) Fixed construction payloads to properly handle transaction signers.
+
 ## [v0.50.11](https://github.com/cosmos/rosetta/releases/tag/v0.50.11) 2024-12-19
 
 ### Improvements
