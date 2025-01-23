@@ -1,4 +1,4 @@
-package rossetaSystemTests
+package rossettaSystemTests
 
 import (
 	"fmt"

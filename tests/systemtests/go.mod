@@ -1,4 +1,4 @@
-module rossetaSystemTests
+module rossettaSystemTests
 
 go 1.23.1
 
