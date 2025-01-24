@@ -1,6 +1,6 @@
 //go:build system_test
 
-package systemtests
+package rossettaSystemTests
 
 import (
 	"testing"

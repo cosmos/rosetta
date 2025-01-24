@@ -1,4 +1,4 @@
-package systemtests
+package rossettaSystemTests
 
 import (
 	"bufio"
@@ -35,7 +35,6 @@ type rosettaRunner struct {
 	Network         string // the network name (default "network")
 	Plugin          string // plugin folder name
 	Tendermint      string // CometBFT rpc endpoint
-	Offline         bool   // run rosetta only with construction API
 	verbose         bool
 	out             io.Writer
 	outBuff         *ring.Ring
@@ -46,7 +45,7 @@ type rosettaRunner struct {
 	outputDir string
 }
 
-func newRosettaRunner(binary, denom, grpcTypesServer, plugin string, offline, verbose bool) rosettaRunner {
+func newRosettaRunner(binary, denom, grpcTypesServer, plugin string, verbose bool) rosettaRunner {
 	execBinary := filepath.Join(systemtests.WorkDir, "binaries", binary)
 	return rosettaRunner{
 		execBinary:      execBinary,
@@ -58,7 +57,6 @@ func newRosettaRunner(binary, denom, grpcTypesServer, plugin string, offline, ve
 		Network:         "cosmos",
 		Plugin:          plugin,
 		Tendermint:      "tcp://localhost:26657",
-		Offline:         offline,
 		out:             os.Stdout,
 		outBuff:         ring.New(100),
 		errBuff:         ring.New(100),
@@ -77,7 +75,6 @@ func (r *rosettaRunner) start(t *testing.T) {
 		"--addr", r.Addr,
 		"--grpc", r.GRPC,
 		"--grpc-types-server", r.GRPCTypesServer,
-		"--plugin", r.Plugin,
 	}
 
 	r.log("Start Rosetta\n")

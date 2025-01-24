@@ -1,4 +1,4 @@
-package systemtests
+package rossettaSystemTests
 
 import (
 	"flag"
@@ -33,7 +33,6 @@ func RunTests(m *testing.M) {
 	rosettaDenom := flag.String("rosetta-denom", "ustake", "rosetta denom to suggest")
 	rosettaGRPCTypesServer := flag.String("rosetta-grpc-types-server", "localhost:9090", "rosetta gRPC Server endpoint for proto messages types and reflection")
 	rosettaPlugin := flag.String("rosetta-plugin", "", "rosetta plugin folder name")
-	rosettaOffline := flag.Bool("rosetta-offline", false, "rosetta run only with construction API")
 	flag.Parse()
 
 	requireEnoughFileHandlers(*nodesCount + 1) // +1 as tests may start another node
@@ -56,7 +55,7 @@ func RunTests(m *testing.M) {
 	sut = systemtests.NewSystemUnderTest(*execBinary, verbose, *nodesCount, *blockTime)
 	sut.SetupChain() // setup chain and keyring
 
-	rosetta = newRosettaRunner(*rosettaBinary, *rosettaDenom, *rosettaGRPCTypesServer, *rosettaPlugin, *rosettaOffline, verbose)
+	rosetta = newRosettaRunner(*rosettaBinary, *rosettaDenom, *rosettaGRPCTypesServer, *rosettaPlugin, verbose)
 
 	// run tests
 	exitCode := m.Run()
