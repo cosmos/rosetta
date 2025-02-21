@@ -37,7 +37,7 @@ func (s *PluginTestSuite) SetupTest() {
 
 func (s *PluginTestSuite) TestLoadPlugin() {
 	s.Run("Load cosmos-hub plugin", func() {
-		rosetta.LoadPlugin(s.ir, "cosmos-hub")
+		rosetta.LoadPlugin(s.ir, "cosmos-hub") // TODO: loading a binary for a test...
 		interfaceList := s.ir.ListAllInterfaces()
 
 		interfaceListMap := make(map[string]bool)
