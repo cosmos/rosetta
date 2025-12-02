@@ -3,7 +3,6 @@ package rosetta
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -370,11 +369,8 @@ func sdkEventToBalanceOperations(status string, event abci.Event) (operations []
 	// rosetta does not have the concept of burning coins, so we need to mock
 	// the burn as a send to an address that cannot be resolved to anything
 	case banktypes.EventTypeCoinBurn:
-		coin, err := base64.StdEncoding.DecodeString(event.Attributes[1].Value)
-		if err != nil {
-			panic(err)
-		}
-		coins, err := sdk.ParseCoinsNormalized(string(coin))
+		coin := event.Attributes[1].Value
+		coins, err := sdk.ParseCoinsNormalized(coin)
 		if err != nil {
 			panic(err)
 		}
